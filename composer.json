@@ -18,5 +18,10 @@
         "psr-4": {
             "RevoTale\\ShoppingCart\\": "./src/"
         }
+    },
+    "config": {
+        "platform": {
+            "php": "8.2"
+        }
     }
 }
