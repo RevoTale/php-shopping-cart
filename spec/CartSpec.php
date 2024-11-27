@@ -86,7 +86,7 @@ class CartSpec extends ObjectBehavior
         $this->addItem($item3, 2.3);
     }
 
-    public function it_checks_empty_state_correctly()
+    public function it_checks_empty_state_correctly(): void
     {
         $this->isEmpty()->shouldReturn(false);
 
@@ -95,7 +95,7 @@ class CartSpec extends ObjectBehavior
         $this->isEmpty()->shouldReturn(true);
     }
 
-    public function it_gets_items_by_filter($item, $item2, CartItemInterface $item3, WeightedCartItemInterface $item4)
+    public function it_gets_items_by_filter($item, $item2, CartItemInterface $item3, WeightedCartItemInterface $item4):void
     {
         // stub
         $item3->getCartId()->willReturn('T');
@@ -113,7 +113,7 @@ class CartSpec extends ObjectBehavior
         $this->getItems('product')->shouldReturn(['A' => $item, 'B' => $item2]);
         $this->getItems('~test')->shouldReturn(['A' => $item, 'B' => $item2]);
         $this->getItems(function (CartItemInterface $item) {
-            return $item->getCartId() == 'A';
+            return $item->getCartId() === 'A';
         })->shouldReturn(['A' => $item]);
 
         $this->getTotal('product')->equals(Decimal::fromFloat(3.19))->shouldReturn(true);
@@ -121,7 +121,7 @@ class CartSpec extends ObjectBehavior
         $this->getTotal('product,nonexistent,test')->equals(Decimal::fromFloat(4.19))->shouldReturn(true);
         $this->getTotal('~test')->equals(Decimal::fromFloat(3.19))->shouldReturn(true);
         $this->getTotal(function (CartItemInterface $item) {
-            return $item->getCartId() == 'A';
+            return $item->getCartId() === 'A';
         })->equals(Decimal::fromFloat(2.2))->shouldReturn(true);
 
         // stub
@@ -143,7 +143,7 @@ class CartSpec extends ObjectBehavior
         $this->getWeight('product,nonexistent,test')->isZero()->shouldReturn(true);
     }
 
-    public function it_counts_totals_for_gross_prices_correctly()
+    public function it_counts_totals_for_gross_prices_correctly():void
     {
         $this->getSubtotal()->equals(Decimal::fromFloat(2.82))->shouldReturn(true);
         $this->getTotal()->equals(Decimal::fromFloat(3.19))->shouldReturn(true);
@@ -161,7 +161,7 @@ class CartSpec extends ObjectBehavior
         $taxTotals[20]->equals(Decimal::fromFloat(0.99))->shouldReturn(true);
     }
 
-    public function it_counts_totals_for_net_prices_correctly()
+    public function it_counts_totals_for_net_prices_correctly():void
     {
         $this->setPricesWithVat(false);
 
@@ -181,7 +181,7 @@ class CartSpec extends ObjectBehavior
         $taxTotals[20]->equals(Decimal::fromInteger(1))->shouldReturn(true);
     }
 
-    public function it_handles_promotions(PromotionInterface $promotion1, PromotionInterface $promotion2)
+    public function it_handles_promotions(PromotionInterface $promotion1, PromotionInterface $promotion2):void
     {
         // stub
         $promotion1->isEligible($this)->willReturn(true);
@@ -201,7 +201,7 @@ class CartSpec extends ObjectBehavior
         $this->removeItem('A');
     }
 
-    public function it_removes_bound_item(BoundCartItemInterface $item3, BoundCartItemInterface $item4)
+    public function it_removes_bound_item(BoundCartItemInterface $item3, BoundCartItemInterface $item4):void
     {
         // stub
         $item3->getCartId()->willReturn('BOUND');
@@ -237,7 +237,7 @@ class CartSpec extends ObjectBehavior
         $this->hasItem('BOUND2')->shouldReturn(false);
     }
 
-    public function it_updates_bound_item_quantity_automatically($item, BoundCartItemInterface $item3, BoundCartItemInterface $item4)
+    public function it_updates_bound_item_quantity_automatically($item, BoundCartItemInterface $item3, BoundCartItemInterface $item4): void
     {
         // stub
         $item3->getCartId()->willReturn('BOUND');
@@ -273,7 +273,7 @@ class CartSpec extends ObjectBehavior
         $this->setItemQuantity('A', 7);
     }
 
-    public function it_removes_multiple_bound_item($item, MultipleBoundCartItemInterface $item3)
+    public function it_removes_multiple_bound_item($item, MultipleBoundCartItemInterface $item3):void
     {
         // stub
         $item3->getCartId()->willReturn('BOUND');
