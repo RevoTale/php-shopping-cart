@@ -7,7 +7,7 @@ class CartContext
 {
 
     /**
-     * @param list<mixed> $data
+     * @param array<string|int,mixed> $data
      */
     public function __construct(private Cart $cart, private array $data = [])
     {
@@ -19,7 +19,7 @@ class CartContext
     }
 
     /**
-     * @return list<mixed>
+     * @return array<string|int,mixed>
      */
     public function getData(): array
     {

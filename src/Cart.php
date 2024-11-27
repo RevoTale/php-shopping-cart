@@ -4,6 +4,20 @@ declare(strict_types=1);
 
 namespace RevoTale\ShoppingCart;
 
+use InvalidArgumentException;
+use OutOfBoundsException;
+use RangeException;
+use function array_filter;
+use function array_flip;
+use function count;
+use function explode;
+use function in_array;
+use function is_callable;
+use function is_string;
+use function spl_object_hash;
+use function substr;
+use function uasort;
+
 class Cart
 {
     /** @var CartItemInterface[] */
@@ -21,14 +35,14 @@ class Cart
     /** @var CartTotals[] */
     protected array $totals = [];
 
-    /** @var callable|null */
+    /** @var callable(Decimal): Decimal|null */
     protected $totalRounding;
 
     /** @var array<string,array<string,string>> */
     protected array $_bindings;
     protected bool $_cartModifiedCallback = true;
     /**
-     * @param mixed[] $context
+     * @param array<string|int,mixed> $context
      */
     public function __construct(array $context = [], bool $pricesWithVat = true, int $roundingDecimals = 2)
     {
@@ -40,7 +54,7 @@ class Cart
     /**
      * Set context. Context is passed to cart items (i.e. for custom price logic).
      *
-     * @param mixed[] $context
+     * @param array<string|int,mixed> $context
      */
     public function setContext(array $context): void
     {
@@ -78,7 +92,7 @@ class Cart
     public function setRoundingDecimals(int $roundingDecimals): void
     {
         if ($roundingDecimals < 0) {
-            throw new \RangeException('Invalid value for rounding decimals.');
+            throw new RangeException('Invalid value for rounding decimals.');
         }
 
         $this->roundingDecimals = $roundingDecimals;
@@ -123,9 +137,9 @@ class Cart
      */
     public function sortByType(array $sorting): void
     {
-        $sorting = \array_flip($sorting);
+        $sorting = array_flip($sorting);
 
-        \uasort($this->items, function (CartItemInterface $a, CartItemInterface $b) use ($sorting) {
+        uasort($this->items, function (CartItemInterface $a, CartItemInterface $b) use ($sorting) {
             $aSort = $sorting[$a->getCartType()] ?? 1000;
             $bSort = $sorting[$b->getCartType()] ?? 1000;
 
@@ -142,7 +156,7 @@ class Cart
      */
     public function getItems($filter = '~'): array
     {
-        return $filter ? \array_filter($this->items, \is_string($filter) ? $this->buildTypeCondition($filter) : $filter) : $this->items;
+        return $filter ? array_filter($this->items, is_string($filter) ? $this->buildTypeCondition($filter) : $filter) : $this->items;
     }
 
     /**
@@ -152,7 +166,7 @@ class Cart
      */
     public function countItems($filter = '~'): int
     {
-        return \count($this->getItems($filter));
+        return count($this->getItems($filter));
     }
 
     /**
@@ -179,7 +193,7 @@ class Cart
     public function getItem(string $cartId): CartItemInterface
     {
         if (!$this->hasItem($cartId)) {
-            throw new \OutOfBoundsException('Requested cart item does not exist.');
+            throw new OutOfBoundsException('Requested cart item does not exist.');
         }
 
         return $this->items[$cartId];
@@ -245,7 +259,7 @@ class Cart
     public function setItemQuantity(string $cartId, float $quantity): void
     {
         if (!$this->hasItem($cartId)) {
-            throw new \OutOfBoundsException('Requested cart item does not exist.');
+            throw new OutOfBoundsException('Requested cart item does not exist.');
         }
 
         if (!$quantity) {
@@ -280,7 +294,7 @@ class Cart
     public function removeItem(string $cartId): void
     {
         if (!$this->hasItem($cartId)) {
-            throw new \OutOfBoundsException('Requested cart item does not exist.');
+            throw new OutOfBoundsException('Requested cart item does not exist.');
         }
 
         // remove bound item
@@ -351,6 +365,7 @@ class Cart
 
     /**
      * Set total rounding function.
+     * @param null|callable(Decimal): Decimal $rounding
      */
     public function setTotalRounding(?callable $rounding): void
     {
@@ -359,6 +374,7 @@ class Cart
 
     /**
      * Get total rounding function.
+     * @return null|callable(Decimal): Decimal
      */
     public function getTotalRounding(): ?callable
     {
@@ -367,23 +383,17 @@ class Cart
 
     /**
      * Get totals using filter. If string, uses buildTypeCondition to build filter function.
-     *
-     * @param callable|string $filter
      */
-    public function getTotals($filter = '~'): CartTotals
+    public function getTotals(callable|string $filter = '~'): CartTotals
     {
-        $hash = \is_string($filter) ? $filter : \spl_object_hash((object) $filter);
+        $hash = is_string($filter) ? $filter : spl_object_hash((object) $filter);
 
         if (isset($this->totals[$hash])) {
             return $this->totals[$hash];
         }
 
-        if (\is_string($filter)) {
+        if (is_string($filter)) {
             $filter = $this->buildTypeCondition($filter);
-        }
-
-        if (!\is_callable($filter)) {
-            throw new \InvalidArgumentException('Filter for getTotals method has to be callable.');
         }
 
         return $this->totals[$hash] = new CartTotals($this, $filter);
@@ -462,13 +472,13 @@ class Cart
 
         if (str_starts_with($type, '~')) {
             $negative = true;
-            $type = \substr($type, 1);
+            $type = substr($type, 1);
         }
 
-        $type = \explode(',', $type);
+        $type = explode(',', $type);
 
         return function (CartItemInterface $item) use ($type, $negative) {
-            return $negative ? !\in_array($item->getCartType(), $type) : \in_array($item->getCartType(), $type);
+            return $negative ? !in_array($item->getCartType(), $type) : in_array($item->getCartType(), $type);
         };
     }
 
@@ -521,7 +531,7 @@ class Cart
     protected function _addBinding(string $boundCartId, string $cartId): void
     {
         if (!$this->hasItem($cartId)) {
-            throw new \OutOfBoundsException('Target cart item does not exist.');
+            throw new OutOfBoundsException('Target cart item does not exist.');
         }
 
         if (!isset($this->_bindings[$cartId])) {
@@ -541,7 +551,7 @@ class Cart
     {
         unset($this->_bindings[$cartId][$boundCartId]);
 
-        if (!\count($this->_bindings[$cartId])) {
+        if (!count($this->_bindings[$cartId])) {
             unset($this->_bindings[$cartId]);
         }
     }
