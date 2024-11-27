@@ -1,0 +1,4 @@
+suites:
+    revotale_suite:
+        namespace: RevoTale\ShoppingCart
+        psr4_prefix: RevoTale\ShoppingCart
