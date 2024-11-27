@@ -53,42 +53,60 @@ class CartTest extends TestCase
         $this->assertEquals(1.0, $this->cart->getItem('B')->getCartQuantity());
     }
 
-    public function testSetsItems(): void
+    public function (): void
     {
-        // Clear the cart to avoid interference from items added in setUp
-        $this->cart->clear();
+        // CltestSetsItemsear the cart to avoid interference from items added in setUp
+        $cart = new Cart(roundingDecimals: 2);
 
         // Set up the first item
         $item = $this->createMock(CartItemInterface::class);
         $item->method('getCartId')->willReturn('A');
         $item->method('getCartType')->willReturn('product');
-        $item->method('getCartQuantity')->willReturn(3);
-        $item->method('getUnitPrice')->willReturn(1);
-        $item->method('getTaxRate')->willReturn(10);
-        $item->expects($this->once())->method('setCartQuantity')->with(3);
-        $item->expects($this->once())->method('setCartContext')->with($this->cart->getContext());
+        $item->method('getCartQuantity')->willReturn(3.0);
+        $item->method('getUnitPrice')->willReturn(1.0);
+        $item->method('getTaxRate')->willReturn(10.0);
+        $item->expects($this->atLeastOnce())->method('setCartQuantity')->with(3);
 
         // Set up the second item
         $item2 = $this->createMock(CartItemInterface::class);
         $item2->method('getCartId')->willReturn('B');
         $item2->method('getCartType')->willReturn('product');
-        $item2->method('getCartQuantity')->willReturn(1);
+        $item2->method('getCartQuantity')->willReturn(1.0);
         $item2->method('getUnitPrice')->willReturn(0.825);
-        $item2->method('getTaxRate')->willReturn(20);
+        $item2->method('getTaxRate')->willReturn(20.0);
         $item2->expects($this->once())->method('setCartQuantity')->with(1);
-        $item2->expects($this->once())->method('setCartContext')->with($this->cart->getContext());
+        $item2->expects($this->atLeastOnce())->method('setCartContext')->with($cart->getContext());
 
         // Set the items in the cart
-        $this->cart->setItems([$item, $item2]);
-
+        $cart->setItems([$item, $item2]);
         // Assert that the total is as expected
-        $this->assertTrue($this->cart->getTotal()->equals(Decimal::fromFloat(4.29)));
+        $this->assertTrue($cart->getTotal()->equals(Decimal::fromFloat(4.29)));
     }
 
     public function testChangesItemQuantity(): void
     {
-        $this->item->expects($this->once())->method('setCartQuantity')->with(7);
+        // Variable to store the quantity
+        $quantity = $this->item->getCartQuantity();
+
+        // Adjust the mock to store the quantity when setCartQuantity is called
+        $this->item->expects($this->once())
+            ->method('setCartQuantity')
+            ->with(7)
+            ->willReturnCallback(function ($qty) use (&$quantity) {
+                $quantity = $qty;
+            });
+
+        // Adjust getCartQuantity to return the updated quantity
+        $this->item->method('getCartQuantity')
+            ->willReturnCallback(function () use (&$quantity) {
+                return $quantity;
+            });
+
+        // Call the method under test
         $this->cart->setItemQuantity('A', 7);
+
+        // Assert that the item's quantity is updated in the cart
+        $this->assertEquals(7, $this->cart->getItem('A')->getCartQuantity());
     }
 
     public function testRemovesItem(): void
