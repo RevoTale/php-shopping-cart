@@ -53,9 +53,9 @@ class CartTest extends TestCase
         $this->assertEquals(1.0, $this->cart->getItem('B')->getCartQuantity());
     }
 
-    public function (): void
+    public function testSetsItems(): void
     {
-        // CltestSetsItemsear the cart to avoid interference from items added in setUp
+        // Clear the cart to avoid interference from items added in setUp
         $cart = new Cart(roundingDecimals: 2);
 
         // Set up the first item
