@@ -161,8 +161,9 @@ class Cart
      * Get items count.
      *
      * @param (callable(CartItemInterface $item): bool)|string $filter
+     * @return int
      */
-    public function countItems($filter = '~'): int
+    public function countItems(callable|string $filter = '~'): int
     {
         return count($this->getItems($filter));
     }
@@ -171,8 +172,9 @@ class Cart
      * Check if cart is empty.
      *
      * @param (callable(CartItemInterface $item): bool)|string $filter
+     * @return bool
      */
-    public function isEmpty($filter = '~'): bool
+    public function isEmpty(callable|string $filter = '~'): bool
     {
         return !$this->countItems($filter);
     }
@@ -400,6 +402,7 @@ class Cart
 
     /**
      * @param (callable(CartItemInterface $item): bool)|string $filter
+     * @return Decimal
      */
     public function getSubtotal(callable|string $filter = '~'): Decimal
     {
@@ -417,6 +420,7 @@ class Cart
 
     /**
      * @param (callable(CartItemInterface $item): bool)|string $filter
+     * @return Decimal
      */
     public function getRoundingAmount(callable|string $filter = '~'): Decimal
     {
