@@ -144,10 +144,12 @@ class Decimal
             $min_scale = isset($captures[4]) ? max(0, strlen($captures[4]) - 1) : 0;
 
         } elseif (preg_match(self::EXP_NOTATION_NUMBER_REGEXP, $strValue, $captures) === 1) {
+            $mantisa = $captures['mantissa'];
+            assert(is_numeric($mantisa));
             [$min_scale, $value] = self::fromExpNotationString(
                 $scale,
                 $captures['sign'],
-                $captures['mantissa'],
+                $mantisa,
                 strlen($captures['mantissa']) - 1,
                 $captures['expSign'],
                 (int)$captures['exp']
@@ -1108,6 +1110,7 @@ assert(is_numeric($value));
     }
 
     /**
+     * @param numeric-string $mantissa
      * @return array{int,numeric-string}
      */
     private static function fromExpNotationString(
@@ -1137,6 +1140,7 @@ assert(is_numeric($value));
                 max($minScale, $scale ?? 0)
             )
         );
+        assert(is_numeric($value));
 
         return [$minScale, $value];
     }
@@ -1156,7 +1160,7 @@ assert(is_numeric($value));
         $diffDigit = (int)$diffDigit[strlen($diffDigit) - 1];
 
         if ($diffDigit >= 5) {
-            $rounded = ($diffDigit >= 5 && $value[0] !== '-')
+            $rounded = ($value[0] !== '-')
                 ? bcadd($rounded, bcpow('10', (string)-$scale, $scale), $scale)
                 : bcsub($rounded, bcpow('10', (string)-$scale, $scale), $scale);
         }
@@ -1194,7 +1198,7 @@ assert(is_numeric($value));
                 );
             case -1:
                 preg_match('/^0*\.(0*)[1-9][0-9]*$/', $value, $captures);
-                $value_log10_approx = -strlen($captures[1]) - 1;
+                $value_log10_approx = -strlen($captures[1]??'') - 1;
 
                 return bcadd(
                     (string)$value_log10_approx,
@@ -1213,6 +1217,7 @@ assert(is_numeric($value));
     /**
      * Returns $base^$exponent
      * @param numeric-string $base
+     * @param numeric-string $exponent
      * @return numeric-string
      */
     private static function innerPowWithLittleExponent(
@@ -1223,17 +1228,34 @@ assert(is_numeric($value));
     ): string
     {
         $inner_scale = (int)ceil($exp_scale * log(10) / log(2)) + 1;
-
+        /**
+         * @var numeric-string $result_a
+         */
         $result_a = '1';
+        /**
+         * @var numeric-string $result_b
+         */
         $result_b = '0';
+        /**
+         * @var numeric-string $zeroStr
+         */
+        $zeroStr = '0';
 
         $actual_index = 0;
+        /**
+         * @var numeric-string $exponent_remaining
+         */
         $exponent_remaining = $exponent;
 
-        while (bccomp($result_a, $result_b, $out_scale) !== 0 && bccomp($exponent_remaining, '0', $inner_scale) !== 0) {
+        while (
+            bccomp($result_a, $result_b, $out_scale) !== 0
+            && bccomp($exponent_remaining, $zeroStr, $inner_scale) !== 0
+        ) {
             $result_b = $result_a;
             $index_info = self::computeSquareIndex($exponent_remaining, $actual_index, $exp_scale, $inner_scale);
             $exponent_remaining = $index_info[1];
+            assert(is_numeric($exponent_remaining));
+
             $result_a = bcmul(
                 $result_a,
                 self::compute2NRoot($base, $index_info[0], 2 * ($out_scale + 1)),
@@ -1247,11 +1269,11 @@ assert(is_numeric($value));
     /**
      * Auxiliar method. It helps us to decompose the exponent into many summands.
      *
-     * @param string $exponent_remaining
+     * @param numeric-string $exponent_remaining
      * @param int $actual_index
      * @param int $exp_scale Number of $exponent's significative digits
      * @param int $inner_scale ceil($exp_scale*log(10)/log(2))+1;
-     * @return array
+     * @return array{int,string}
      */
     private static function computeSquareIndex(
         string $exponent_remaining,
@@ -1275,6 +1297,7 @@ assert(is_numeric($value));
     /**
      * Auxiliar method. Computes $base^((1/2)^$index)
      * @param numeric-string $base
+     * @return numeric-string
      */
     private static function compute2NRoot(string $base, int $index, int $out_scale): string
     {
@@ -1292,7 +1315,7 @@ assert(is_numeric($value));
      * @param mixed $value
      * @param null|int $scale
      */
-    protected static function paramsValidation($value, int $scale = null)
+    protected static function paramsValidation($value, int $scale = null): void
     {
         if (null === $value) {
             throw new InvalidArgumentException('$value must be a non null number');
