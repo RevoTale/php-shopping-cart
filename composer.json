@@ -13,7 +13,7 @@
     "ext-bcmath": "*"
   },
   "scripts": {
-    "phpunit": "vendor/bin/phpunit run",
+    "phpunit": "vendor/bin/phpunit",
     "phpstan": "vendor/bin/phpstan analyse"
   },
   "require-dev": {
