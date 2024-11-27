@@ -115,7 +115,7 @@ class Decimal
                     ? $capture['exp'] + strlen($capture['dec'])
                     : self::DEFAULT_SCALE;
             }
-            $strValue = number_format($fltValue, $scale, '.', '');
+            $strValue = number_format($fltValue, (int)$scale, '.', '');
         } else {
             $naturalScale = (
                 strlen((string)fmod($fltValue, 1.0)) - 2 - (($fltValue < 0) ? 1 : 0) + (!$hasPoint ? 1 : 0)
@@ -127,7 +127,7 @@ class Decimal
                 $strValue .= ($hasPoint ? '' : '.') . str_pad('', $scale - $naturalScale, '0');
             }
         }
-
+        assert(is_int($scale));
         return new self($strValue, $scale);
     }
 
@@ -147,7 +147,7 @@ class Decimal
             $min_scale = isset($captures[4]) ? max(0, strlen($captures[4]) - 1) : 0;
 
         } elseif (preg_match(self::EXP_NOTATION_NUMBER_REGEXP, $strValue, $captures) === 1) {
-            list($min_scale, $value) = self::fromExpNotationString(
+            [$min_scale, $value] = self::fromExpNotationString(
                 $scale,
                 $captures['sign'],
                 $captures['mantissa'],
@@ -161,12 +161,18 @@ class Decimal
 
         $scale = $scale ?? $min_scale;
         if ($scale < $min_scale) {
+            assert(is_int($scale));
+            assert(is_string($value));
             $value = self::innerRound($value, $scale);
         } elseif ($min_scale < $scale) {
-            $hasPoint = (false !== strpos($value, '.'));
+            assert(is_int($scale));
+            assert(is_string($value));
+            assert(is_int($min_scale));
+            $hasPoint = (str_contains($value, '.'));
             $value .= ($hasPoint ? '' : '.') . str_pad('', $scale - $min_scale, '0');
         }
-
+assert(is_int($scale));
+        assert(is_string($value));
         return new self($value, $scale);
     }
 
