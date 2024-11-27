@@ -158,18 +158,14 @@ class Decimal
 
         $scale = $scale ?? $min_scale;
         if ($scale < $min_scale) {
-            assert(is_int($scale));
-            assert(is_string($value) && is_numeric($value));
+            assert(is_numeric($value));
             $value = self::innerRound($value, $scale);
         } elseif ($min_scale < $scale) {
-            assert(is_int($scale));
-            assert(is_string($value) && is_numeric($value));
-            assert(is_int($min_scale));
+            assert(is_numeric($value));
             $hasPoint = (str_contains($value, '.'));
             $value .= ($hasPoint ? '' : '.') . str_pad('', $scale - $min_scale, '0');
         }
-assert(is_int($scale));
-        assert(is_numeric($value) && is_string($value));
+        assert(is_numeric($value) );
         return new self($value, $scale);
     }
 
@@ -218,7 +214,7 @@ assert(is_int($scale));
      * @param int|null $scale
      * @return Decimal
      */
-    public function sub(Decimal $b, int $scale = null): Decimal
+    public function sub(Decimal $b, int $scale = null): self
     {
         self::paramsValidation($b, $scale);
 
@@ -650,9 +646,9 @@ assert(is_numeric($value));
      * Calculate modulo with a decimal
      * @param Decimal $d
      * @param int|null $scale
-     * @return $this % $d
+     * @return Decimal % $d
      */
-    public function mod(Decimal $d, int $scale = null): Decimal
+    public function mod(Decimal $d, int $scale = null): self
     {
         $div = $this->div($d, 1)->floor();
         return $this->sub($div->mul($d), $scale);
@@ -689,7 +685,7 @@ assert(is_numeric($value));
      * Calculates the cosecant of this with the highest possible accuracy
      * Note that accuracy is limited by the accuracy of predefined PI;
      */
-    public function cosec(int $scale = null): Decimal
+    public function cosec(int $scale): Decimal
     {
         $sin = $this->sin($scale + 2);
         if ($sin->isZero()) {
@@ -732,7 +728,7 @@ assert(is_numeric($value));
      * Calculates the secant of this with the highest possible accuracy
      * Note that accuracy is limited by the accuracy of predefined PI;
      */
-    public function sec(int $scale = null): Decimal
+    public function sec(int $scale): Decimal
     {
         $cos = $this->cos($scale + 2);
         if ($cos->isZero()) {
@@ -747,10 +743,10 @@ assert(is_numeric($value));
     /**
      *    Calculates the arcsine of this with the highest possible accuracy
      *
-     * @param int|null $scale
+     * @param int $scale
      * @return Decimal
      */
-    public function arcsin(int $scale = null): Decimal
+    public function arcsin(int $scale): Decimal
     {
         if ($this->comp(DecimalConstants::one(), $scale + 2) === 1 || $this->comp(DecimalConstants::negativeOne(), $scale + 2) === -1) {
             throw new DomainException(
@@ -768,7 +764,6 @@ assert(is_numeric($value));
             return DecimalConstants::pi()->div(self::fromInteger(-2))->round($scale);
         }
 
-        $scale = $scale ?? 32;
 
         return self::powerSerie(
             $this,
@@ -780,7 +775,7 @@ assert(is_numeric($value));
     /**
      *    Calculates the arccosine of this with the highest possible accuracy
      */
-    public function arccos(int $scale = null): Decimal
+    public function arccos(int $scale): Decimal
     {
         if ($this->comp(DecimalConstants::one(), $scale + 2) === 1 || $this->comp(DecimalConstants::negativeOne(), $scale + 2) === -1) {
             throw new DomainException(
@@ -800,7 +795,6 @@ assert(is_numeric($value));
             return DecimalConstants::pi()->round($scale);
         }
 
-        $scale = $scale ?? 32;
 
         return $piOverTwo->sub(
             self::powerSerie(
@@ -814,7 +808,7 @@ assert(is_numeric($value));
     /**
      *    Calculates the arctangente of this with the highest possible accuracy
      */
-    public function arctan(int $scale = null): Decimal
+    public function arctan(int $scale): Decimal
     {
         $piOverFour = DecimalConstants::pi()->div(self::fromInteger(4), $scale + 2)->round($scale);
 
@@ -828,7 +822,6 @@ assert(is_numeric($value));
             return DecimalConstants::negativeOne()->mul($piOverFour);
         }
 
-        $scale = $scale ?? 32;
 
         return self::simplePowerSerie(
             $this,
@@ -868,11 +861,8 @@ assert(is_numeric($value));
 
     /**
      * Calculates the arcsecant of this with the highest possible accuracy
-     *
-     * @param int|null $scale
-     * @return Decimal
      */
-    public function arcsec(int $scale = null): Decimal
+    public function arcsec(int $scale): Decimal
     {
         if ($this->comp(DecimalConstants::one(), $scale + 2) === -1 && $this->comp(DecimalConstants::negativeOne(), $scale + 2) === 1) {
             throw new DomainException(
@@ -888,8 +878,6 @@ assert(is_numeric($value));
         if ($this->round($scale)->equals(DecimalConstants::negativeOne())) {
             return DecimalConstants::pi()->round($scale);
         }
-
-        $scale = $scale ?? 32;
 
         return $piOverTwo->sub(
             self::powerSerie(
@@ -950,6 +938,7 @@ assert(is_numeric($value));
 
     /**
      * Internal method used to compute sin, cos and exp
+     * @param callable(int $generalTerm):Decimal $generalTerm
      */
     private static function factorialSerie(Decimal $x, Decimal $firstTerm, callable $generalTerm, int $scale): Decimal
     {
@@ -1056,7 +1045,7 @@ assert(is_numeric($value));
      * Calculates the tangent of this method with the highest possible accuracy
      * Note that accuracy is limited by the accuracy of predefined PI;
      */
-    public function tan(int $scale = null): Decimal
+    public function tan(int $scale = 0): Decimal
     {
         $cos = $this->cos($scale + 2);
         if ($cos->isZero()) {
@@ -1072,10 +1061,10 @@ assert(is_numeric($value));
      * Calculates the cotangent of this method with the highest possible accuracy
      * Note that accuracy is limited by the accuracy of predefined PI;
      *
-     * @param int|null $scale
+     * @param int $scale
      * @return Decimal cotan($this)
      */
-    public function cotan(int $scale = null): Decimal
+    public function cotan(int $scale = 0): Decimal
     {
         $sin = $this->sin($scale + 2);
         if ($sin->isZero()) {
@@ -1118,8 +1107,8 @@ assert(is_numeric($value));
         return $this->value;
     }
 
-    /*
-     *
+    /**
+     * @return array{int,numeric-string}
      */
     private static function fromExpNotationString(
         ?int   $scale,
