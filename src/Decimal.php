@@ -42,20 +42,14 @@ class Decimal
     public const EXP_NOTATION_NUMBER_REGEXP = '/^ (?P<sign> [+\-]?) 0*(?P<mantissa> [0-9](?P<decimals> \.[0-9]+)?) [eE] (?P<expSign> [+\-]?)(?P<exp> \d+)$/x';
     public const EXP_NUM_GROUPS_NUMBER_REGEXP = '/^ (?P<int> \d*) (?: \. (?P<dec> \d+) ) E (?P<sign>[\+\-]) (?P<exp>\d+) $/x';
 
-    /**
-     * Internal numeric value
-     */
-    protected string $value;
+
 
     /**
-     * Number of digits behind the point
+     * @param numeric-string $value Internal numeric value
+     * @param int $scale Number of digits behind the point
      */
-    private int $scale;
-
-    private function __construct(string $value, int $scale)
+    private function __construct(protected string $value,private int $scale)
     {
-        $this->value = $value;
-        $this->scale = $scale;
     }
 
     private function __clone()
@@ -105,7 +99,9 @@ class Decimal
         if (is_nan($fltValue)) {
             throw new UnexpectedValueException("fltValue can't be NaN");
         }
-
+        /**
+         * @var numeric-string $strValue
+         */
         $strValue = (string)$fltValue;
         $hasPoint = (str_contains($strValue, '.'));
 
@@ -128,6 +124,7 @@ class Decimal
             }
         }
         assert(is_int($scale));
+        assert(is_numeric($strValue));
         return new self($strValue, $scale);
     }
 
@@ -162,17 +159,17 @@ class Decimal
         $scale = $scale ?? $min_scale;
         if ($scale < $min_scale) {
             assert(is_int($scale));
-            assert(is_string($value));
+            assert(is_string($value) && is_numeric($value));
             $value = self::innerRound($value, $scale);
         } elseif ($min_scale < $scale) {
             assert(is_int($scale));
-            assert(is_string($value));
+            assert(is_string($value) && is_numeric($value));
             assert(is_int($min_scale));
             $hasPoint = (str_contains($value, '.'));
             $value .= ($hasPoint ? '' : '.') . str_pad('', $scale - $min_scale, '0');
         }
 assert(is_int($scale));
-        assert(is_string($value));
+        assert(is_numeric($value) && is_string($value));
         return new self($value, $scale);
     }
 
@@ -339,53 +336,60 @@ assert(is_int($scale));
             }
 
             throw new DomainException("zero can't be powered to zero or negative numbers.");
-        } elseif ($b->isZero()) {
+        }
+
+        if ($b->isZero()) {
             return DecimalConstants::One();
-        } else if ($b->isNegative()) {
+        }
+
+        if ($b->isNegative()) {
             return DecimalConstants::One()->div(
                 $this->pow($b->additiveInverse(), max($scale, self::DEFAULT_SCALE)),
                 max($scale, self::DEFAULT_SCALE)
             );
-        } elseif (0 === $b->scale) {
+        }
+
+        if (0 === $b->scale) {
             $pow_scale = max($this->scale, $b->scale, $scale ?? 0);
 
             return self::fromString(
                 bcpow($this->value, $b->value, $pow_scale + 1),
                 $pow_scale
             );
-        } else {
-            if ($this->isPositive()) {
-                $pow_scale = max($this->scale, $b->scale, $scale ?? 0);
+        }
 
-                $truncated_b = bcadd($b->value, '0', 0);
-                $remaining_b = bcsub($b->value, $truncated_b, $b->scale);
+        if ($this->isPositive()) {
+            $pow_scale = max($this->scale, $b->scale, $scale ?? 0);
 
-                $first_pow_approx = bcpow($this->value, $truncated_b, $pow_scale + 1);
-                $intermediate_root = self::innerPowWithLittleExponent(
-                    $this->value,
-                    $remaining_b,
-                    $b->scale,
-                    $pow_scale + 1
-                );
+            $truncated_b = bcadd($b->value, '0', 0);
+            $remaining_b = bcsub($b->value, $truncated_b, $b->scale);
 
-                return self::fromString(
-                    bcmul($first_pow_approx, $intermediate_root, $pow_scale + 1),
-                    $pow_scale
-                );
-            }
+            $first_pow_approx = bcpow($this->value, $truncated_b, $pow_scale + 1);
+            $intermediate_root = self::innerPowWithLittleExponent(
+                $this->value,
+                $remaining_b,
+                $b->scale,
+                $pow_scale + 1
+            );
+
+$result = bcmul($first_pow_approx, $intermediate_root, $pow_scale + 1);
+            return self::fromString(
+                $result,
+                $pow_scale
+            );
+        }
 
 // elseif ($this->isNegative())
-            if (!$b->isInteger()) {
-                throw new NotImplementedError(
-                    "Usually negative numbers can't be powered to non integer numbers. " .
-                    "The cases where is possible are not implemented."
-                );
-            }
-
-            return (preg_match('/^[+\-]?[0-9]*[02468](\.0+)?$/', $b->value, $captures) === 1)
-                ? $this->additiveInverse()->pow($b, $scale)                      // $b is an even number
-                : $this->additiveInverse()->pow($b, $scale)->additiveInverse();  // $b is an odd number
+        if (!$b->isInteger()) {
+            throw new UnexpectedValueException(
+                "Usually negative numbers can't be powered to non integer numbers. " .
+                "The cases where is possible are not implemented."
+            );
         }
+
+        return (preg_match('/^[+\-]?[0-9]*[02468](\.0+)?$/', $b->value, $captures) === 1)
+            ? $this->additiveInverse()->pow($b, $scale)                      // $b is an even number
+            : $this->additiveInverse()->pow($b, $scale)->additiveInverse();  // $b is an odd number
     }
 
     /**
@@ -552,7 +556,7 @@ assert(is_int($scale));
         } else { // if ($this->isPositive()) {
             $value = '-' . $this->value;
         }
-
+assert(is_numeric($value));
         return new self($value, $this->scale);
     }
 
@@ -1151,9 +1155,9 @@ assert(is_int($scale));
     /**
      * "Rounds" the decimal string to have at most $scale digits after the point
      *
-     * @param string $value
+     * @param numeric-string $value
      * @param int $scale
-     * @return string
+     * @return numeric-string
      */
     private static function innerRound(string $value, int $scale = 0): string
     {
@@ -1174,10 +1178,10 @@ assert(is_int($scale));
     /**
      * Calculates the logarithm (in base 10) of $value
      *
-     * @param string $value The number we want to calculate its logarithm (only positive numbers)
+     * @param numeric-string $value The number we want to calculate its logarithm (only positive numbers)
      * @param int $in_scale Expected scale used by $value (only positive numbers)
      * @param int $out_scale Scale used by the return value (only positive numbers)
-     * @return string
+     * @return numeric-string
      */
     private static function innerLog10(string $value, int $in_scale, int $out_scale): string
     {
@@ -1219,6 +1223,8 @@ assert(is_int($scale));
 
     /**
      * Returns $base^$exponent
+     * @param numeric-string $base
+     * @return numeric-string
      */
     private static function innerPowWithLittleExponent(
         string $base,
@@ -1279,6 +1285,7 @@ assert(is_int($scale));
 
     /**
      * Auxiliar method. Computes $base^((1/2)^$index)
+     * @param numeric-string $base
      */
     private static function compute2NRoot(string $base, int $index, int $out_scale): string
     {
