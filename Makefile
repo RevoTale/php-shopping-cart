@@ -2,10 +2,14 @@ install:
 	docker run --rm --interactive --tty \
       --volume $(PWD):/app \
       composer install
-phpstan:
+update:
+	docker run --rm --interactive --tty \
+      --volume $(PWD):/app \
+      composer update
+phpunit:
 	docker run --rm --interactive --tty \
       	  --volume $(PWD):/app \
-          composer run phpstan
+          composer run phpunit
 
 phpspec:
 	docker run --rm --interactive --tty \
