@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace RevoTale\ShoppingCart;
 
-use InvalidArgumentException;
 use OutOfBoundsException;
 use RangeException;
 use function array_filter;
@@ -12,7 +11,6 @@ use function array_flip;
 use function count;
 use function explode;
 use function in_array;
-use function is_callable;
 use function is_string;
 use function spl_object_hash;
 use function substr;
@@ -133,13 +131,13 @@ class Cart
     }
 
     /**
-     * @param string[] $sorting
+     * @param list<string> $sorting
      */
     public function sortByType(array $sorting): void
     {
         $sorting = array_flip($sorting);
 
-        uasort($this->items, function (CartItemInterface $a, CartItemInterface $b) use ($sorting) {
+        uasort($this->items, static function (CartItemInterface $a, CartItemInterface $b) use ($sorting) {
             $aSort = $sorting[$a->getCartType()] ?? 1000;
             $bSort = $sorting[$b->getCartType()] ?? 1000;
 
@@ -150,11 +148,11 @@ class Cart
     /**
      * Get items.
      *
-     * @param callable|string $filter
+     * @param (callable(CartItemInterface $item): bool)|string $filter
      *
      * @return CartItemInterface[]
      */
-    public function getItems($filter = '~'): array
+    public function getItems(callable|string $filter = '~'): array
     {
         return $filter ? array_filter($this->items, is_string($filter) ? $this->buildTypeCondition($filter) : $filter) : $this->items;
     }
@@ -162,7 +160,7 @@ class Cart
     /**
      * Get items count.
      *
-     * @param callable|string $filter
+     * @param (callable(CartItemInterface $item): bool)|string $filter
      */
     public function countItems($filter = '~'): int
     {
@@ -172,7 +170,7 @@ class Cart
     /**
      * Check if cart is empty.
      *
-     * @param callable|string $filter
+     * @param (callable(CartItemInterface $item): bool)|string $filter
      */
     public function isEmpty($filter = '~'): bool
     {
@@ -383,6 +381,7 @@ class Cart
 
     /**
      * Get totals using filter. If string, uses buildTypeCondition to build filter function.
+     * @param (callable(CartItemInterface $item): bool)|string $filter
      */
     public function getTotals(callable|string $filter = '~'): CartTotals
     {
@@ -400,63 +399,65 @@ class Cart
     }
 
     /**
-     * @param callable|string $filter
+     * @param (callable(CartItemInterface $item): bool)|string $filter
      */
-    public function getSubtotal($filter = '~'): Decimal
+    public function getSubtotal(callable|string $filter = '~'): Decimal
     {
         return $this->getTotals($filter)->getSubtotal();
     }
 
     /**
-     * @param callable|string $filter
+     * @param (callable(CartItemInterface $item): bool)|string $filter
+     * @return Decimal
      */
-    public function getTotal($filter = '~'): Decimal
+    public function getTotal(callable|string $filter = '~'): Decimal
     {
         return $this->getTotals($filter)->getTotal();
     }
 
     /**
-     * @param callable|string $filter
+     * @param (callable(CartItemInterface $item): bool)|string $filter
      */
-    public function getRoundingAmount($filter = '~'): Decimal
+    public function getRoundingAmount(callable|string $filter = '~'): Decimal
     {
         return $this->getTotals($filter)->getRounding();
     }
 
     /**
-     * @param callable|string $filter
+     * @param (callable(CartItemInterface $item): bool)|string $filter
      *
      * @return array<float|int,Decimal>
      */
-    public function getTaxes($filter = '~'): array
+    public function getTaxes(callable|string $filter = '~'): array
     {
         return $this->getTotals($filter)->getTaxes();
     }
 
     /**
-     * @param callable|string $filter
+     * @param (callable(CartItemInterface $item): bool)|string $filter
      *
      * @return array<float|int,Decimal>
      */
-    public function getTaxBases($filter = '~'): array
+    public function getTaxBases(string|callable $filter = '~'): array
     {
         return $this->getTotals($filter)->getSubtotals();
     }
 
     /**
-     * @param callable|string $filter
+     * @param (callable(CartItemInterface $item): bool)|string $filter
      *
      * @return array<float|int,Decimal>
      */
-    public function getTaxTotals($filter = '~'): array
+    public function getTaxTotals(string|callable $filter = '~'): array
     {
         return $this->getTotals($filter)->getTotals();
     }
 
     /**
-     * @param callable|string $filter
+     * @param string|(callable(CartItemInterface $item): bool) $filter
+     * @return Decimal
      */
-    public function getWeight($filter = '~'): Decimal
+    public function getWeight(string|callable $filter = '~'): Decimal
     {
         return $this->getTotals($filter)->getWeight();
     }
@@ -465,6 +466,7 @@ class Cart
      * Build condition for item type.
      *
      * @param string $type
+     * @return (callable(CartItemInterface $item): bool)
      */
     protected function buildTypeCondition(string $type): callable
     {
@@ -477,7 +479,7 @@ class Cart
 
         $type = explode(',', $type);
 
-        return function (CartItemInterface $item) use ($type, $negative) {
+        return static function (CartItemInterface $item) use ($type, $negative) {
             return $negative ? !in_array($item->getCartType(), $type) : in_array($item->getCartType(), $type);
         };
     }
