@@ -89,7 +89,7 @@ class CartTest extends TestCase
         $quantity = $this->item->getCartQuantity();
 
         // Adjust the mock to store the quantity when setCartQuantity is called
-        $this->item->expects($this->once())
+        $this->item->expects($this->exactly(2))
             ->method('setCartQuantity')
             ->with(7)
             ->willReturnCallback(function ($qty) use (&$quantity) {
