@@ -1,17 +1,20 @@
-install:
+
+build:
+	docker build --tag "revotale/php-shopping-cart:latest" .
+composer_install:
 	docker run --rm --interactive --tty \
-      --volume $(PWD):/app \
-      composer install
-update:
+	  	--volume $(PWD):/app \
+		"revotale/php-shopping-cart:latest" composer install
+composer_update:
 	docker run --rm --interactive --tty \
-      --volume $(PWD):/app \
-      composer update
+	  	--volume $(PWD):/app \
+		"revotale/php-shopping-cart:latest" composer update
 phpunit:
 	docker run --rm --interactive --tty \
-      	  --volume $(PWD):/app \
-          composer run phpunit
+	  	--volume $(PWD):/app \
+		"revotale/php-shopping-cart:latest" phpunit
 
-phpspec:
+phpstan:
 	docker run --rm --interactive --tty \
-      	  --volume $(PWD):/app \
-          composer run phpspec
+	  	--volume $(PWD):/app \
+		"revotale/php-shopping-cart:latest" phpstan

@@ -27,8 +27,7 @@
   },
   "config": {
     "platform": {
-      "php": "8.2",
-      "ext-bcmath": "3.1"
+      "php": "8.2"
     }
   }
 }
