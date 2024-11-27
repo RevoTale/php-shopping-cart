@@ -42,7 +42,7 @@ class Cart
     /**
      * @param array<string|int,mixed> $context
      */
-    public function __construct(array $context = [], bool $pricesWithVat = true, int $roundingDecimals = 2)
+    public function __construct(array $context = [], bool $pricesWithVat = true, int $roundingDecimals = 0)
     {
         $this->setContext($context);
         $this->setPricesWithVat($pricesWithVat);

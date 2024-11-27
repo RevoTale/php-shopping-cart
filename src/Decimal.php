@@ -1315,7 +1315,7 @@ assert(is_numeric($value));
      * @param mixed $value
      * @param null|int $scale
      */
-    protected static function paramsValidation($value, int $scale = null): void
+    protected static function paramsValidation(mixed $value, int $scale = null): void
     {
         if (null === $value) {
             throw new InvalidArgumentException('$value must be a non null number');
