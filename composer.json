@@ -12,8 +12,13 @@
     "php": "^8.0",
     "ext-bcmath": "*"
   },
+  "scripts": {
+    "phpspec": "vendor/bin/phpspec run",
+    "phpstan": "vendor/bin/phpstan analyse"
+  },
   "require-dev": {
-    "phpspec/phpspec": "^7.0"
+    "phpspec/phpspec": "^7.0",
+    "phpstan/phpstan": "^2.0"
   },
   "autoload": {
     "psr-4": {
@@ -22,7 +27,8 @@
   },
   "config": {
     "platform": {
-      "php": "8.2"
+      "php": "8.2",
+      "ext-bcmath": "3.1"
     }
   }
 }
