@@ -14,14 +14,22 @@ class Cart implements CartInterface
      */
     protected array $promotions = [];
 
-    public function addItem(CartItemInterface $item,int $quantity = 1): void
+    public function addItem(CartItemInterface $item, int $quantity = 1): void
     {
-        if (!$this->hasItem($item)) {
-            $this->items[] = [
-                'item' => $item,
-                'qty'=>$quantity
-            ];
+        $id = $this->getItemId($item);
+        if (isset($this->items[$id])) {
+            $this->items[$id]['qty'] += $quantity;
+            return;
         }
+        $this->items[$id] = [
+            'item' => $item,
+            'qty' => $quantity
+        ];
+    }
+
+    protected function getItemId(CartItemInterface $item): string
+    {
+        return $item->getCartId() . '________' . $item->getCartType();
     }
 
     /**
@@ -30,21 +38,17 @@ class Cart implements CartInterface
      */
     public function findItem(CartItemInterface $item): ?array
     {
-        foreach ($this->items as $i) {
-            if ($this->isTheSameItem($item, $i['item'])) {
-                return $i;
-            }
-        }
-        return null;
+        return $this->items[$this->getItemId($item)] ?? null;
     }
+
     public function getItemQuantity(CartItemInterface $item): int
     {
-       $result =  $this->findItem($item);
-       if (null === $result) {
-           return 0;
+        $result = $this->findItem($item);
+        if (null === $result) {
+            return 0;
 
-       }
-       return $result['qty'];
+        }
+        return $result['qty'];
     }
 
     public function isTheSameItem(CartItemInterface $item1, CartItemInterface $item2): bool
@@ -57,9 +61,20 @@ class Cart implements CartInterface
         return $this->findItem($item) !== null;
     }
 
-    public function removeItem(CartItemInterface $item): void
+    public function removeItem(CartItemInterface $item, int $qty = null): void
     {
-        $this->items = array_filter($this->items, fn(CartItemInterface $i) => $this->isTheSameItem($item, $i));
+        $id = $this->getItemId($item);
+        if (!isset($this->items[$id])) {
+            return;
+        }
+        if ($qty === null) {
+            unset($this->items[$id]);
+            return;
+        }
+        $this[$id]['qty'] -= $qty;
+        if ($this[$id]['qty'] < 0) {
+            unset($this->items[$id]);
+        }
     }
 
     public function addPromotion(PromotionInterface $promotion): void
@@ -76,7 +91,7 @@ class Cart implements CartInterface
 
     public function getItems(): array
     {
-        return array_map(static fn(array $item)=>$item['item'],$this->items);
+        return array_map(static fn(array $item) => $item['item'], $this->items);
     }
 
     public function getPromotions(): array
@@ -120,7 +135,7 @@ class Cart implements CartInterface
         $this->clearPromotions();
     }
 
-    public function performTotals():CartTotals
+    public function performTotals(): CartTotals
     {
         throw new \UnexpectedValueException('not implementd');
     }
