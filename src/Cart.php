@@ -10,7 +10,7 @@ class Cart implements CartInterface
      */
     protected array $items = [];
     /**
-     * @var list<PromotionInterface> $promotions
+     * @var array<string,PromotionInterface> $promotions
      */
     protected array $promotions = [];
 
