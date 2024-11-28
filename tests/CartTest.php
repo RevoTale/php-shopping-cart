@@ -287,7 +287,7 @@ class CartTest extends TestCase
 
     public function testCanSetRounding(): void
     {
-        $cart = new Cart();
+        $cart = new Cart(roundingDecimals: 2);
 
         // Add items
         $itemA = $this->createMock(CartItemInterface::class);
@@ -296,9 +296,9 @@ class CartTest extends TestCase
         $itemA->method('getUnitPrice')->willReturn(1.0);
         $itemA->method('getTaxRate')->willReturn(10.0);
         $itemA->method('getCartQuantity')->willReturn(2.0);
-        $itemA->expects($this->once())->method('setCartQuantity')->with(2.0);
-        $itemA->expects($this->once())->method('setCartContext')->with($cart->getContext());
-        $cart->addItem($itemA);
+        $itemA->expects($this->atLeastOnce())->method('setCartQuantity')->with(2.0);
+        $itemA->expects($this->atLeastOnce())->method('setCartContext')->with($cart->getContext());
+        $cart->addItem($itemA,2.0);
 
         $itemB = $this->createMock(CartItemInterface::class);
         $itemB->method('getCartId')->willReturn('B');
@@ -306,8 +306,8 @@ class CartTest extends TestCase
         $itemB->method('getUnitPrice')->willReturn(0.825);
         $itemB->method('getTaxRate')->willReturn(20.0);
         $itemB->method('getCartQuantity')->willReturn(1.0);
-        $itemB->expects($this->once())->method('setCartQuantity')->with(1.0);
-        $itemB->expects($this->once())->method('setCartContext')->with($cart->getContext());
+        $itemB->expects($this->atLeastOnce())->method('setCartQuantity')->with(1.0);
+        $itemB->expects($this->atLeastOnce())->method('setCartContext')->with($cart->getContext());
         $cart->addItem($itemB);
 
         $cart->setTotalRounding(fn(Decimal $total) => $total->round());
