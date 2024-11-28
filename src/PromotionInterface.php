@@ -28,5 +28,7 @@ interface PromotionInterface
      * @return list<PromotionInterface>
      */
     public function reducePromotions(CartInterface $cart,array $items): array;
+    public function getCartId():string;
+    public function getCartType(): string;
 
 }

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace RevoTale\ShoppingCart;
 
-interface CartResultInterface
+interface CartTotalsInterface
 {
     public function getTotal():Decimal;
     /**
