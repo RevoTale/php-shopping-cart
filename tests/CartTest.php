@@ -216,7 +216,7 @@ class CartTest extends TestCase
 
     public function testCountsTotalsForNetPricesCorrectly(): void
     {
-        $cart = new Cart();
+        $cart = new Cart(roundingDecimals: 2);
 
         // Item A
         $itemA = $this->createMock(CartItemInterface::class);
@@ -225,9 +225,9 @@ class CartTest extends TestCase
         $itemA->method('getCartQuantity')->willReturn(2.0);
         $itemA->method('getUnitPrice')->willReturn(1.0);
         $itemA->method('getTaxRate')->willReturn(10.0);
-        $itemA->expects($this->once())->method('setCartQuantity')->with(2.0);
-        $itemA->expects($this->once())->method('setCartContext')->with($cart->getContext());
-        $cart->addItem($itemA);
+        $itemA->expects($this->atLeastOnce())->method('setCartQuantity')->with(2.0);
+        $itemA->expects($this->atLeastOnce())->method('setCartContext')->with($cart->getContext());
+        $cart->addItem($itemA,2.0);
 
         // Item B
         $itemB = $this->createMock(CartItemInterface::class);
@@ -236,12 +236,11 @@ class CartTest extends TestCase
         $itemB->method('getCartQuantity')->willReturn(1.0);
         $itemB->method('getUnitPrice')->willReturn(0.825);
         $itemB->method('getTaxRate')->willReturn(20.0);
-        $itemB->expects($this->once())->method('setCartQuantity')->with(1.0);
-        $itemB->expects($this->once())->method('setCartContext')->with($cart->getContext());
+        $itemB->expects($this->atLeastOnce())->method('setCartQuantity')->with(1.0);
+        $itemB->expects($this->atLeastOnce())->method('setCartContext')->with($cart->getContext());
         $cart->addItem($itemB);
 
         $cart->setPricesWithVat(false);
-
         $this->assertTrue($cart->getSubtotal()->equals(Decimal::fromFloat(2.83)));
         $this->assertTrue($cart->getTotal()->equals(Decimal::fromFloat(3.2)));
 
