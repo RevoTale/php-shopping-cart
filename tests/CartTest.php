@@ -6,7 +6,7 @@ namespace RevoTale\ShoppingCart\Tests;
 
 use PHPUnit\Framework\TestCase;
 use RevoTale\ShoppingCart\BoundCartItemInterface;
-use RevoTale\ShoppingCart\Cart;
+use RevoTale\ShoppingCart\CartLgacy;
 use RevoTale\ShoppingCart\CartItemInterface;
 use RevoTale\ShoppingCart\Decimal;
 use RevoTale\ShoppingCart\MultipleBoundCartItemInterface;
@@ -17,7 +17,7 @@ class CartTest extends TestCase
 {
     public function testAddsItems(): void
     {
-        $cart = new Cart();
+        $cart = new CartLgacy();
 
         // First item
         $item = $this->createMock(CartItemInterface::class);
@@ -50,7 +50,7 @@ class CartTest extends TestCase
 
     public function testSetsItems(): void
     {
-        $cart = new Cart(roundingDecimals: 2);
+        $cart = new CartLgacy(roundingDecimals: 2);
 
         // Set up the first item
         $item = $this->createMock(CartItemInterface::class);
@@ -81,7 +81,7 @@ class CartTest extends TestCase
 
     public function testChangesItemQuantity(): void
     {
-        $cart = new Cart();
+        $cart = new CartLgacy();
 
         // Variable to store the quantity
         $quantity = 2.0;
@@ -114,7 +114,7 @@ class CartTest extends TestCase
 
     public function testRemovesItem(): void
     {
-        $cart = new Cart();
+        $cart = new CartLgacy();
 
         // Item
         $item = $this->createMock(CartItemInterface::class);
@@ -133,7 +133,7 @@ class CartTest extends TestCase
 
     public function testMergesItemsOfSameId(): void
     {
-        $cart = new Cart();
+        $cart = new CartLgacy();
 
         // Existing item in cart
         $item = $this->createMock(CartItemInterface::class);
@@ -156,7 +156,7 @@ class CartTest extends TestCase
 
     public function testChecksEmptyStateCorrectly(): void
     {
-        $cart = new Cart();
+        $cart = new CartLgacy();
 
         // Add an item
         $item = $this->createMock(CartItemInterface::class);
@@ -176,7 +176,7 @@ class CartTest extends TestCase
 
     public function testCountsTotalsForGrossPricesCorrectly(): void
     {
-        $cart = new Cart(roundingDecimals: 2);
+        $cart = new CartLgacy(roundingDecimals: 2);
 
         // Item A
         $itemA = $this->createMock(CartItemInterface::class);
@@ -216,7 +216,7 @@ class CartTest extends TestCase
 
     public function testCountsTotalsForNetPricesCorrectly(): void
     {
-        $cart = new Cart(roundingDecimals: 2);
+        $cart = new CartLgacy(roundingDecimals: 2);
 
         // Item A
         $itemA = $this->createMock(CartItemInterface::class);
@@ -259,7 +259,7 @@ class CartTest extends TestCase
 
     public function testHandlesPromotions(): void
     {
-        $cart = new Cart();
+        $cart = new CartLgacy();
 
         // Add an item to trigger promotions
         $item = $this->createMock(CartItemInterface::class);
@@ -287,7 +287,7 @@ class CartTest extends TestCase
 
     public function testCanSetRounding(): void
     {
-        $cart = new Cart(roundingDecimals: 2);
+        $cart = new CartLgacy(roundingDecimals: 2);
 
         // Add items
         $itemA = $this->createMock(CartItemInterface::class);
@@ -318,7 +318,7 @@ class CartTest extends TestCase
 
     public function testPercentCouponPromotion(): void
     {
-        $cart = new Cart();
+        $cart = new CartLgacy();
 
         // Add items to the cart
         $item1 = $this->createMock(CartItemInterface::class);
@@ -337,7 +337,7 @@ class CartTest extends TestCase
         $percentPromotion->method('beforeApply')->willReturnCallback(function ($cart) {
             // No action needed before apply
         });
-        $percentPromotion->method('apply')->willReturnCallback(function (Cart $cart) {
+        $percentPromotion->method('apply')->willReturnCallback(function (CartLgacy $cart) {
             // Apply a 20% discount by adding a discount item
             $discountAmount = $cart->getSubtotal()->mul(Decimal::fromFloat(0.20));
             $discountItem = $this->createMock(CartItemInterface::class);
@@ -374,7 +374,7 @@ class CartTest extends TestCase
 
     public function testFixedPriceCouponPromotion(): void
     {
-        $cart = new Cart();
+        $cart = new CartLgacy();
 
         // Add items to the cart
         $item1 = $this->createMock(CartItemInterface::class);

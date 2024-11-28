@@ -16,32 +16,13 @@ interface CartItemInterface
     public function getCartType(): string;
 
     /**
-     * Get name of the item.
-     */
-    public function getCartName(): string;
-
-    /**
      * Set cart context.
      */
     public function setCartContext(CartContext $context): void;
-
     /**
-     * Set cart quantity.
+     * Get unit price in minimal currency unit.
      */
-    public function setCartQuantity(float $quantity): void;
+    public function getUnitPrice(): int;
 
-    /**
-     * Get cart quantity.
-     */
-    public function getCartQuantity(): float;
 
-    /**
-     * Get unit price.
-     */
-    public function getUnitPrice(): float;
-
-    /**
-     * Get tax rate percentage.
-     */
-    public function getTaxRate(): float;
 }

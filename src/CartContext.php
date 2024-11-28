@@ -3,17 +3,21 @@
 declare(strict_types=1);
 
 namespace RevoTale\ShoppingCart;
+/**
+ * @template T implements CartInterface
+ */
 class CartContext
 {
 
     /**
      * @param array<string|int,mixed> $data
+     * @param T $cart
      */
-    public function __construct(private Cart $cart, private array $data = [])
+    public function __construct(private CartInterface $cart, private array $data = [])
     {
     }
 
-    public function getCart(): Cart
+    public function getCart(): CartInterface
     {
         return $this->cart;
     }
