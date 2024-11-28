@@ -316,7 +316,116 @@ class CartTest extends TestCase
         $this->assertTrue($cart->getRoundingAmount()->equals(Decimal::fromFloat(-0.19)));
     }
 
-    // Continue rewriting the remaining test methods similarly, ensuring local carts and items are used.
+    public function testPercentCouponPromotion(): void
+    {
+        $cart = new Cart();
 
-    // ...
+        // Add items to the cart
+        $item1 = $this->createMock(CartItemInterface::class);
+        $item1->method('getCartId')->willReturn('A');
+        $item1->method('getCartType')->willReturn('product');
+        $item1->method('getCartQuantity')->willReturn(2.0);
+        $item1->method('getUnitPrice')->willReturn(50.0); // $50 per item
+        $item1->method('getTaxRate')->willReturn(10.0);
+        $item1->expects($this->atLeastOnce())->method('setCartQuantity')->with(2.0);
+        $item1->expects($this->atLeastOnce())->method('setCartContext')->with($cart->getContext());
+        $cart->addItem($item1,2.0);
+
+        // Create a promotion that applies a 20% discount
+        $percentPromotion = $this->createMock(PromotionInterface::class);
+        $percentPromotion->method('isEligible')->willReturn(true);
+        $percentPromotion->method('beforeApply')->willReturnCallback(function ($cart) {
+            // No action needed before apply
+        });
+        $percentPromotion->method('apply')->willReturnCallback(function (Cart $cart) {
+            // Apply a 20% discount by adding a discount item
+            $discountAmount = $cart->getSubtotal()->mul(Decimal::fromFloat(0.20));
+            $discountItem = $this->createMock(CartItemInterface::class);
+            $discountItem->method('getCartId')->willReturn('DISCOUNT');
+            $discountItem->method('getCartType')->willReturn('discount');
+            $discountItem->method('getCartQuantity')->willReturn(1.0);
+            $discountItem->method('getUnitPrice')->willReturn($discountAmount->additiveInverse()->asFloat());
+            $discountItem->method('getTaxRate')->willReturn(0.0);
+            $discountItem->expects($this->atLeastOnce())->method('setCartQuantity')->with(1.0);
+            $discountItem->expects($this->atLeastOnce())->method('setCartContext')->with($cart->getContext());
+            $cart->addItem($discountItem);
+        });
+        $percentPromotion->method('afterApply')->willReturnCallback(function ($cart) {
+            // No action needed after apply
+        });
+
+        $cart->setPromotions([$percentPromotion]);
+
+
+        // Expected calculations:
+        // Subtotal: $50 x 2 = $100
+        // Discount: $100 x 20% = $20
+        // New Subtotal: $100 - $20 = $80
+        // Tax: $80 x 10% = $8
+        // Total: $80 + $8 = $88
+
+        $subtotal = $cart->getSubtotal(); // Should be $80 after discount
+        $tax = array_values($cart->getTaxes())[0];           // Should be $8
+        $total = $cart->getTotal();       // Should be $88
+        $this->assertTrue($subtotal->equals(Decimal::fromFloat(80.0)));
+        $this->assertTrue($tax->equals(Decimal::fromFloat(8.0)));
+        $this->assertTrue($total->equals(Decimal::fromFloat(88.0)));
+    }
+
+    public function testFixedPriceCouponPromotion(): void
+    {
+        $cart = new Cart();
+
+        // Add items to the cart
+        $item1 = $this->createMock(CartItemInterface::class);
+        $item1->method('getCartId')->willReturn('B');
+        $item1->method('getCartType')->willReturn('product');
+        $item1->method('getCartQuantity')->willReturn(1.0);
+        $item1->method('getUnitPrice')->willReturn(120.0); // $120 per item
+        $item1->method('getTaxRate')->willReturn(15.0);
+        $item1->expects($this->once())->method('setCartQuantity')->with(1.0);
+        $item1->expects($this->once())->method('setCartContext')->with($cart->getContext());
+        $cart->addItem($item1);
+
+        // Create a promotion that applies a fixed discount of $30
+        $fixedPromotion = $this->createMock(PromotionInterface::class);
+        $fixedPromotion->method('isEligible')->willReturn(true);
+        $fixedPromotion->method('beforeApply')->willReturnCallback(function ($cart) {
+            // No action needed before apply
+        });
+        $fixedPromotion->method('apply')->willReturnCallback(function ($cart) {
+            $discountAmount = Decimal::fromFloat(30.0);
+            $discountItem = $this->createMock(CartItemInterface::class);
+            $discountItem->method('getCartId')->willReturn('DISCOUNT');
+            $discountItem->method('getCartType')->willReturn('discount');
+            $discountItem->method('getCartQuantity')->willReturn(1.0);
+            $discountItem->method('getUnitPrice')->willReturn($discountAmount->additiveInverse()->asFloat());
+            $discountItem->method('getTaxRate')->willReturn(0.0);
+            $discountItem->expects($this->once())->method('setCartQuantity')->with(1.0);
+            $discountItem->expects($this->once())->method('setCartContext')->with($cart->getContext());
+            $cart->addItem($discountItem);
+        });
+        $fixedPromotion->method('afterApply')->willReturnCallback(function ($cart) {
+            // No action needed after apply
+        });
+
+        $cart->setPromotions([$fixedPromotion]);
+
+        // Recalculate totals
+
+        // Expected calculations:
+        // Subtotal: $120
+        // Discount: $30
+        // New Subtotal: $120 - $30 = $90
+        // Tax: $90 x 15% = $13.50
+        // Total: $90 + $13.50 = $103.50
+
+        $subtotal = $cart->getSubtotal(); // Should be $90 after discount
+        $tax = $cart->getTaxes()[0];           // Should be $13.50
+        $total = $cart->getTotal();       // Should be $103.50
+
+        $this->assertTrue($subtotal->equals(Decimal::fromFloat(90.0)));
+        $this->assertTrue($tax->equals(Decimal::fromFloat(13.5)));
+        $this->assertTrue($total->equals(Decimal::fromFloat(103.5)));
+    }
 }
