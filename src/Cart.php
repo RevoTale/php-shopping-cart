@@ -6,7 +6,7 @@ namespace RevoTale\ShoppingCart;
 class Cart implements CartInterface
 {
     /**
-     * @var array<string,array{item:CartItemInterface,qty:int}> $items
+     * @var array<string,CartItemCounter> $items
      */
     protected array $items = [];
     /**
@@ -18,13 +18,10 @@ class Cart implements CartInterface
     {
         $id = $this->getItemId($item);
         if (isset($this->items[$id])) {
-            $this->items[$id]['qty'] += $quantity;
+            $this->items[$id]->quantity += $quantity;
             return;
         }
-        $this->items[$id] = [
-            'item' => $item,
-            'qty' => $quantity
-        ];
+        $this->items[$id] =new CartItemCounter(item: $item, quantity: $quantity);
     }
 
     protected function getItemId(CartItemInterface $item): string
@@ -32,11 +29,16 @@ class Cart implements CartInterface
         return $item->getCartId() . '________' . $item->getCartType();
     }
 
+    protected function getPromoId(PromotionInterface $promotion): string
+    {
+        return $promotion->getCartId() . '________' . $promotion->getCartType();
+    }
+
     /**
      * @param CartItemInterface $item
-     * @return array{item:CartItemInterface,qty:int}|null
+     * @return CartItemCounter|null
      */
-    public function findItem(CartItemInterface $item): ?array
+    public function findItem(CartItemInterface $item): ?CartItemCounter
     {
         return $this->items[$this->getItemId($item)] ?? null;
     }
@@ -48,12 +50,12 @@ class Cart implements CartInterface
             return 0;
 
         }
-        return $result['qty'];
+        return $result->quantity;
     }
 
     public function isTheSameItem(CartItemInterface $item1, CartItemInterface $item2): bool
     {
-        return $item1->getCartId() === $item2->getCartId() && $item1->getCartType() === $item2->getCartType();
+        return $this->getItemId($item1) && $this->getItemId($item2);
     }
 
     public function hasItem(CartItemInterface $item): bool
@@ -71,8 +73,8 @@ class Cart implements CartInterface
             unset($this->items[$id]);
             return;
         }
-        $this[$id]['qty'] -= $qty;
-        if ($this[$id]['qty'] < 0) {
+        $this->items[$id]->quantity -= $qty;
+        if ($this->items[$id]->quantity < 0) {
             unset($this->items[$id]);
         }
     }
@@ -80,23 +82,26 @@ class Cart implements CartInterface
     public function addPromotion(PromotionInterface $promotion): void
     {
         if (!$this->hasPromo($promotion)) {
-            $this->promotions[] = $promotion;
+            $this->promotions[$this->getPromoId($promotion)] = $promotion;
         }
     }
 
     public function removePromotion(PromotionInterface $promotion): void
     {
-        $this->promotions = array_filter($this->promotions, fn(CartItemInterface $i) => $this->isTheSamePromotion($promotion, $i));
+        $this->promotions = array_filter($this->promotions, fn(PromotionInterface $i): bool => $this->isTheSamePromotion($promotion, $i));
     }
 
     public function getItems(): array
     {
-        return array_map(static fn(array $item) => $item['item'], $this->items);
+        return array_map(static fn(CartItemCounter $item) => $item->item, array_values($this->items));
     }
 
+    /**
+     * @return list<PromotionInterface>
+     */
     public function getPromotions(): array
     {
-        return $this->promotions;
+        return array_values($this->promotions);
     }
 
     public function hasPromo(PromotionInterface $promotion): bool
@@ -116,7 +121,7 @@ class Cart implements CartInterface
 
     public function isTheSamePromotion(PromotionInterface $promotion1, PromotionInterface $promotion2): bool
     {
-        return $promotion1->getCartId() === $promotion2->getCartId() && $promotion1->getCartType() === $promotion2->getCartType();
+        return $this->getPromoId($promotion1) && $this->getPromoId($promotion2);
     }
 
     public function clearItems(): void
