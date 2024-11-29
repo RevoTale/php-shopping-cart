@@ -21,18 +21,15 @@ class Cart implements CartInterface
             $this->items[$id]->quantity += $quantity;
             return;
         }
-        $this->items[$id] =new CartItemCounter(item: $item, quantity: $quantity);
+        $this->items[$id] = new CartItemCounter(item: $item, quantity: $quantity);
     }
 
-    public function getItemId(CartItemInterface $item): string
+    public function getItemId(CartItemInterface|PromotionInterface $item): string
     {
         return $item->getCartId() . '________' . $item->getCartType();
     }
 
-    public function getPromoId(PromotionInterface $promotion): string
-    {
-        return $promotion->getCartId() . '________' . $promotion->getCartType();
-    }
+
     private function findItem(CartItemInterface $item): ?CartItemCounter
     {
         return $this->items[$this->getItemId($item)] ?? null;
@@ -73,7 +70,7 @@ class Cart implements CartInterface
     public function addPromotion(PromotionInterface $promotion): void
     {
         if (!$this->hasPromo($promotion)) {
-            $this->promotions[$this->getPromoId($promotion)] = $promotion;
+            $this->promotions[$this->getItemId($promotion)] = $promotion;
         }
     }
 
@@ -112,7 +109,7 @@ class Cart implements CartInterface
 
     private function isTheSamePromotion(PromotionInterface $promotion1, PromotionInterface $promotion2): bool
     {
-        return $this->getPromoId($promotion1) && $this->getPromoId($promotion2);
+        return $this->getItemId($promotion1) && $this->getItemId($promotion2);
     }
 
     public function clearItems(): void
@@ -131,8 +128,72 @@ class Cart implements CartInterface
         $this->clearPromotions();
     }
 
+    /**
+     * @param list<PromotionInterface|CartItemInterface> $a
+     * @param list<PromotionInterface|CartItemInterface> $b
+     */
+    private function arrayEqual(array $a, array $b): bool
+    {
+        $aIds = array_map(fn(PromotionInterface|CartItemInterface $item)=>$this->getItemId($item),$a);
+        $bIds = array_map(fn(PromotionInterface|CartItemInterface $item)=>$this->getItemId($item),$b);
+
+        return (
+            count($aIds) === count($bIds)
+            && array_diff($aIds, $bIds) === array_diff($bIds,$aIds)
+        );
+    }
+
+    /**
+     * @param list<PromotionInterface> $promotions
+     * @return list<PromotionInterface>
+     */
+    private function excludePromotion(PromotionInterface $promotion,array $promotions):array
+    {
+        $excluded = [];
+        foreach ($promotions as $promoItem) {
+            if ($this->getItemId($promotion) !== $this->getItemId($promoItem)) {
+                $excluded[] = $promotion;
+            }
+        }
+        return $excluded;
+    }
+
     public function performTotals(): CartTotals
     {
-        throw new \UnexpectedValueException('not implementd');
+        $items = $this->getItems();
+        $promotions = $this->promotions;
+        /**
+         * @var array<string,CartPromoImpact> $promoImpact
+         */
+        $promoImpact = [];
+        /** @noinspection SlowArrayOperationsInLoopInspection */
+        /** @noinspection ForeachInvariantsInspection */
+        for ($i = 0; $i < count($promotions); $i++) {
+            $promotion = $promotions[$i];
+            $newPromotions = $promotion->reducePromotions($this, $this->excludePromotion($promotion,$promotions));
+            if (!$this->arrayEqual($promotions, $newPromotions)) {
+                $promotions = $newPromotions;
+                $i = 0;
+            }
+        }
+
+        /** @noinspection SlowArrayOperationsInLoopInspection */
+        /** @noinspection ForeachInvariantsInspection */
+        for ($i = 0; $i < count($items); $i++) {
+            $item = $items[$i];
+            $newItems = $item->reduceItems($this, array_map(static fn(CartItemInterface $item) => clone $item, $items));
+            if (!$this->arrayEqual($items, $newItems)) {
+                $items = $newItems;
+                $i = 0;
+            }
+        }
+
+
+        /**
+         * @var array<string,CartItemPromoImpact> $promoImpact
+         */
+        $promotionItemsImpact = [];
+        return  new CartTotals(cart: $this, items: $items, itemSubTotals: [], promotionItemsImpact: $promotionItemsImpact, promotionsImpact: $promoImpact, promotions: $promotions);
+
     }
 }

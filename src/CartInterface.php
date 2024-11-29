@@ -23,4 +23,7 @@ interface CartInterface
     public function getPromotions():array;
 
     public function clearItems():void;
+
+    public function getItemQuantity(CartItemInterface $item): int;
+
 }

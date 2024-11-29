@@ -8,7 +8,7 @@ class CartTotals implements CartTotalsInterface
     /**
      * @param array<string,CartItemCounter> $items
      * @param array<string,CartItemSubTotal> $itemSubTotals
-     * @param array<string,PromotionInterface> $promotionItemsImpact
+     * @param array<string,CartItemPromoImpact> $promotionItemsImpact
      * @param array<string,CartPromoImpact> $promotionsImpact
      * @param array<string,PromotionInterface> $promotions
      */

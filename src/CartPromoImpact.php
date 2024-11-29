@@ -12,10 +12,10 @@ final class CartPromoImpact
      */
     public function __construct(
         public PromotionInterface $promotion,
-        public array $addedItems,
-        public array $removedItems,
-        public array $addedPromotions,
-        public array $removedPromotions,
+        public array $addedItems = [],
+        public array $removedItems = [],
+        public array $addedPromotions = [],
+        public array $removedPromotions = [],
     )
     {
     }
