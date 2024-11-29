@@ -24,21 +24,16 @@ class Cart implements CartInterface
         $this->items[$id] =new CartItemCounter(item: $item, quantity: $quantity);
     }
 
-    protected function getItemId(CartItemInterface $item): string
+    public function getItemId(CartItemInterface $item): string
     {
         return $item->getCartId() . '________' . $item->getCartType();
     }
 
-    protected function getPromoId(PromotionInterface $promotion): string
+    public function getPromoId(PromotionInterface $promotion): string
     {
         return $promotion->getCartId() . '________' . $promotion->getCartType();
     }
-
-    /**
-     * @param CartItemInterface $item
-     * @return CartItemCounter|null
-     */
-    public function findItem(CartItemInterface $item): ?CartItemCounter
+    private function findItem(CartItemInterface $item): ?CartItemCounter
     {
         return $this->items[$this->getItemId($item)] ?? null;
     }
@@ -53,10 +48,6 @@ class Cart implements CartInterface
         return $result->quantity;
     }
 
-    public function isTheSameItem(CartItemInterface $item1, CartItemInterface $item2): bool
-    {
-        return $this->getItemId($item1) && $this->getItemId($item2);
-    }
 
     public function hasItem(CartItemInterface $item): bool
     {
@@ -109,7 +100,7 @@ class Cart implements CartInterface
         return $this->findPromotion($promotion) !== null;
     }
 
-    public function findPromotion(PromotionInterface $promotion): ?PromotionInterface
+    private function findPromotion(PromotionInterface $promotion): ?PromotionInterface
     {
         foreach ($this->promotions as $i) {
             if ($this->isTheSamePromotion($i, $promotion)) {
@@ -119,7 +110,7 @@ class Cart implements CartInterface
         return null;
     }
 
-    public function isTheSamePromotion(PromotionInterface $promotion1, PromotionInterface $promotion2): bool
+    private function isTheSamePromotion(PromotionInterface $promotion1, PromotionInterface $promotion2): bool
     {
         return $this->getPromoId($promotion1) && $this->getPromoId($promotion2);
     }

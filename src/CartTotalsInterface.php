@@ -9,12 +9,10 @@ interface CartTotalsInterface
      * @return list<CartItemInterface>
      */
     public function getItems():array;
+
+    public function getItemQuantity(CartItemInterface $item):int;
     /**
      * @return list<PromotionInterface>
      */
     public function getPromotions():array;
-
-    public function getSubTotalForItem(CartItemInterface $item):Decimal;
-
-    public function getSubTotalForPromotion(PromotionInterface $promotion):Decimal;
 }

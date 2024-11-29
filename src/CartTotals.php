@@ -5,22 +5,19 @@ namespace RevoTale\ShoppingCart;
 
 class CartTotals implements CartTotalsInterface
 {
+    /**
+     * @param array<string,CartItemCounter> $items
+     * @param array<string,CartItemSubTotal> $itemSubTotals
+     * @param array<string,PromotionInterface> $promotionItemsImpact
+     * @param array<string,CartPromoImpact> $promotionsImpact
+     * @param array<string,PromotionInterface> $promotions
+     */
     public function __construct(
-        /**
-         * @var list<CartItemInterface> $items
-         */
+        protected Cart $cart,
         protected array $items = [],
-        /**
-         * @var list<CartItemSubTotal> $itemSubTotals
-         */
         protected array $itemSubTotals = [],
-        /**
-         * @var list<CartItemPromoImpact> $promotionsImpact
-         */
+        protected array $promotionItemsImpact = [],
         protected array $promotionsImpact = [],
-        /**
-         * @var list<PromotionInterface> $promotions
-         */
         protected array $promotions = [],
     )
     {
@@ -31,26 +28,30 @@ class CartTotals implements CartTotalsInterface
      */
     public function getItems(): array
     {
-        return $this->items;
+        return array_map(static fn(CartItemCounter $c)=>$c->item,array_values($this->items));
     }
 
     public function getTotal(): Decimal
     {
-        // TODO: Implement getTotal() method.
+       $total = Decimal::fromInteger(0);
+       foreach ($this->itemSubTotals as $item) {
+           $total = $total->add($item->subTotalAfterPromo);
+       }
+       return $total;
     }
 
+    /**
+     * @return list<PromotionInterface>
+     */
     public function getPromotions(): array
     {
-        return $this->promotions;
+        return array_values($this->promotions);
     }
 
-    public function getSubTotalForItem(CartItemInterface $item): Decimal
-    {
-        // TODO: Implement getSubTotalForItem() method.
+
+    public function getItemQuantity(CartItemInterface $item):int {
+        return $this->items[$this->cart->getItemId($item)]->quantity;
     }
 
-    public function getSubTotalForPromotion(PromotionInterface $promotion): Decimal
-    {
-        // TODO: Implement getSubTotalForPromotion() method.
-    }
+
 }
