@@ -79,9 +79,12 @@ class Cart implements CartInterface
         $this->promotions = array_filter($this->promotions, fn(PromotionInterface $i): bool => $this->isTheSamePromotion($promotion, $i));
     }
 
+    /**
+     * @return list<CartItemInterface>
+     */
     public function getItems(): array
     {
-        return array_map(static fn(CartItemCounter $item) => $item->item, array_values($this->items));
+        return array_values(array_map(static fn(CartItemCounter $item) => $item->item, ($this->items)));
     }
 
     /**
@@ -134,20 +137,46 @@ class Cart implements CartInterface
      */
     private function arrayEqual(array $a, array $b): bool
     {
-        $aIds = array_map(fn(PromotionInterface|CartItemInterface $item)=>$this->getItemId($item),$a);
-        $bIds = array_map(fn(PromotionInterface|CartItemInterface $item)=>$this->getItemId($item),$b);
+        $aIds = array_map(fn(PromotionInterface|CartItemInterface $item) => $this->getItemId($item), $a);
+        $bIds = array_map(fn(PromotionInterface|CartItemInterface $item) => $this->getItemId($item), $b);
 
         return (
             count($aIds) === count($bIds)
-            && array_diff($aIds, $bIds) === array_diff($bIds,$aIds)
+            && array_diff($aIds, $bIds) === array_diff($bIds, $aIds)
         );
+    }
+
+    /**
+     * @param list<CartItemCounter> $items
+     * @return array<string,CartItemCounter>
+     */
+    private function makeKeyedItems(array $items): array
+    {
+        $result = [];
+        foreach ($items as $item) {
+
+            $result[$this->getItemId($item->getItem())] = $item;
+        }
+        return $result;
+    }
+    /**
+     * @param list<PromotionInterface> $promotions
+     * @return array<string,PromotionInterface>
+     */
+    private function makeKeyedPromo(array $promotions): array
+    {
+        $result = [];
+        foreach ($promotions as $item) {
+            $result[$this->getItemId($item)] = $item;
+        }
+        return $result;
     }
 
     /**
      * @param list<PromotionInterface> $promotions
      * @return list<PromotionInterface>
      */
-    private function excludePromotion(PromotionInterface $promotion,array $promotions):array
+    private function excludePromotion(PromotionInterface $promotion, array $promotions): array
     {
         $excluded = [];
         foreach ($promotions as $promoItem) {
@@ -158,10 +187,23 @@ class Cart implements CartInterface
         return $excluded;
     }
 
+    /**
+     * @param list<CartItemCounter> $items
+     * @return list<CartItemInterface>
+     */
+    private function extractItemsCounter(array $items): array
+    {
+        return array_map(static fn(CartItemCounter $item): CartItemInterface => $item->getItem(), $items);
+
+    }
+
     public function performTotals(): CartTotals
     {
-        $items = $this->getItems();
-        $promotions = $this->promotions;
+        /**
+         * @var list<CartItemCounter> $items
+         */
+        $items = array_map(static fn(CartItemCounter $item) => clone $item, $this->items);
+        $promotions = array_values($this->promotions);
         /**
          * @var array<string,CartPromoImpact> $promoImpact
          */
@@ -170,7 +212,7 @@ class Cart implements CartInterface
         /** @noinspection ForeachInvariantsInspection */
         for ($i = 0; $i < count($promotions); $i++) {
             $promotion = $promotions[$i];
-            $newPromotions = $promotion->reducePromotions($this, $this->excludePromotion($promotion,$promotions));
+            $newPromotions = $promotion->reducePromotions($this, $this->excludePromotion($promotion, $promotions));
             if (!$this->arrayEqual($promotions, $newPromotions)) {
                 $promotions = $newPromotions;
                 $i = 0;
@@ -179,10 +221,10 @@ class Cart implements CartInterface
 
         /** @noinspection SlowArrayOperationsInLoopInspection */
         /** @noinspection ForeachInvariantsInspection */
-        for ($i = 0; $i < count($items); $i++) {
-            $item = $items[$i];
-            $newItems = $item->reduceItems($this, array_map(static fn(CartItemInterface $item) => clone $item, $items));
-            if (!$this->arrayEqual($items, $newItems)) {
+        for ($i = 0; $i < count($promotions); $i++) {
+            $promotion = $promotions[$i];
+            $newItems = $promotion->reduceItems($this, $items);
+            if (!$this->arrayEqual($this->extractItemsCounter($items), $this->extractItemsCounter($newItems))) {
                 $items = $newItems;
                 $i = 0;
             }
@@ -190,10 +232,17 @@ class Cart implements CartInterface
 
 
         /**
-         * @var array<string,CartItemPromoImpact> $promoImpact
+         * @var array<string,CartPromoImpact> $promoImpact
          */
         $promotionItemsImpact = [];
-        return  new CartTotals(cart: $this, items: $items, itemSubTotals: [], promotionItemsImpact: $promotionItemsImpact, promotionsImpact: $promoImpact, promotions: $promotions);
+        return new CartTotals(
+            cart: $this,
+            items: $this->makeKeyedItems($items),
+            itemSubTotals: [],
+            promotionItemsImpact: $promotionItemsImpact,
+            promotionsImpact: ($promoImpact),
+            promotions: $this->makeKeyedPromo($promotions)
+        );
 
     }
 }

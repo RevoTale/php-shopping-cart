@@ -18,10 +18,10 @@ interface PromotionInterface
     public function reduceItemSubtotal(CartInterface $cart,CartItemInterface $item): Decimal;
 
     /**
-     * @param list<CartItemCounter> $items
+     * @param list<CartItemCounter> $itemCounters
      * @return list<CartItemCounter>
      */
-    public function reduceItems(CartInterface $cart,array $items): array;
+    public function reduceItems(CartInterface $cart,array $itemCounters): array;
 
     /**
      * @param list<PromotionInterface> $items
