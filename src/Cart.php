@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace RevoTale\ShoppingCart;
 
+use UnexpectedValueException;
+
 class Cart implements CartInterface
 {
     /**
@@ -132,18 +134,100 @@ class Cart implements CartInterface
     }
 
     /**
-     * @param list<PromotionInterface|CartItemInterface> $a
-     * @param list<PromotionInterface|CartItemInterface> $b
+     * @param list<CartItemCounter> $a
+     * @param list<CartItemCounter> $b
+     * @return list<array{item:CartItemCounter,diff:int}>
      */
-    private function arrayEqual(array $a, array $b): bool
+    private function itemsDiff(array $a, array $b): array
     {
-        $aIds = array_map(fn(PromotionInterface|CartItemInterface $item) => $this->getItemId($item), $a);
-        $bIds = array_map(fn(PromotionInterface|CartItemInterface $item) => $this->getItemId($item), $b);
+        $keyedA = $this->makeKeyedItems($a);
+        $keyedB = $this->makeKeyedItems($b);
+        $items = [];
+        foreach ($keyedA as $item) {
+            $items[] = $item;
+        }
+        foreach ($keyedB as $item) {
+            $items[] = $item;
+        }
+        $keyedACount = array_map(static function (CartItemCounter $item) {
+            return $item->quantity;
+        }, $keyedA);
+        $keyedBCount = array_map(static function (CartItemCounter $item) {
+            return $item->quantity;
+        }, $keyedB);
 
-        return (
-            count($aIds) === count($bIds)
-            && array_diff($aIds, $bIds) === array_diff($bIds, $aIds)
-        );
+$diff = $keyedBCount;
+        foreach ($keyedACount as $itemId=>$count) {
+            $diff[$itemId] -= $count;
+
+        }
+        $objDiff =[];
+        foreach ($diff as $itemId=>$count) {
+            $foundItem = null;
+            foreach ($items as $item) {
+                if ($this->getItemId($item->getItem()) === $itemId) {
+                    $foundItem = $item;
+                }
+
+            }
+            if($foundItem === null) {
+                throw new UnexpectedValueException('Item not found');
+            }
+            $objDiff[] = [
+                'item'=>$foundItem,
+                'diff'=>$count
+            ];
+        }
+
+        return $objDiff;
+    }
+    /**
+     * @param list<PromotionInterface> $a
+     * @param list<PromotionInterface> $b
+     * @return list<array{item:PromotionInterface,diff:int}>
+     */
+    private function promoDiff(array $a, array $b): array
+    {
+        $keyedA = $this->makeKeyedPromo($a);
+        $keyedB = $this->makeKeyedPromo($b);
+        $items = [];
+        foreach ($keyedA as $item) {
+            $items[] = $item;
+        }
+        foreach ($keyedB as $item) {
+            $items[] = $item;
+        }
+        $keyedACount = array_map(static function (PromotionInterface $item) {
+            return 1;
+        }, $keyedA);
+        $keyedBCount = array_map(static function (PromotionInterface $item) {
+            return 1;
+        }, $keyedB);
+
+        $diff = $keyedBCount;
+        foreach ($keyedACount as $itemId=>$count) {
+            $diff[$itemId] -= $count;
+
+        }
+        $objDiff =[];
+        foreach ($diff as $itemId=>$count) {
+            $foundItem = null;
+            foreach ($items as $item) {
+                if ($this->getItemId($item) === $itemId) {
+                    $foundItem = $item;
+                }
+
+            }
+            if($foundItem === null) {
+                throw new UnexpectedValueException('Item not found');
+            }
+            $objDiff[] = [
+                'item'=>$foundItem,
+                'diff'=>$count
+            ];
+        }
+
+        return $objDiff;
     }
 
     /**
@@ -187,15 +271,6 @@ class Cart implements CartInterface
         return $excluded;
     }
 
-    /**
-     * @param list<CartItemCounter> $items
-     * @return list<CartItemInterface>
-     */
-    private function extractItemsCounter(array $items): array
-    {
-        return array_map(static fn(CartItemCounter $item): CartItemInterface => $item->getItem(), $items);
-
-    }
 
     public function performTotals(): CartTotals
     {
@@ -213,28 +288,28 @@ class Cart implements CartInterface
         for ($i = 0; $i < count($promotions); $i++) {
             $promotion = $promotions[$i];
             $newPromotions = $promotion->reducePromotions($this, $this->excludePromotion($promotion, $promotions));
-            if (!$this->arrayEqual($promotions, $newPromotions)) {
+            if (!$this->promoDiff($promotions, $newPromotions)) {
                 $promotions = $newPromotions;
                 $i = 0;
             }
         }
-
+        /**
+         * @var array<string,CartPromoImpact> $promoImpact
+         */
+        $promotionItemsImpact = [];
         /** @noinspection SlowArrayOperationsInLoopInspection */
         /** @noinspection ForeachInvariantsInspection */
         for ($i = 0; $i < count($promotions); $i++) {
             $promotion = $promotions[$i];
             $newItems = $promotion->reduceItems($this, $items);
-            if (!$this->arrayEqual($this->extractItemsCounter($items), $this->extractItemsCounter($newItems))) {
+            if (!$this->itemsDiff(($items), ($newItems))) {
                 $items = $newItems;
                 $i = 0;
             }
         }
 
 
-        /**
-         * @var array<string,CartPromoImpact> $promoImpact
-         */
-        $promotionItemsImpact = [];
+
         return new CartTotals(
             cart: $this,
             items: $this->makeKeyedItems($items),
