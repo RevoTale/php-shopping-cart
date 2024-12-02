@@ -22,7 +22,8 @@
   },
   "autoload": {
     "psr-4": {
-      "RevoTale\\ShoppingCart\\": "./src/"
+      "RevoTale\\ShoppingCart\\": "./src/",
+      "RevoTale\\ShoppingCart\\Tests\\": "./tests"
     }
   },
   "config": {
