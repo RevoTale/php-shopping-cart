@@ -136,13 +136,14 @@ class Cart implements CartInterface
     /**
      * @param list<CartItemCounter> $a
      * @param list<CartItemCounter> $b
-     * @return list<array{item:CartItemCounter,diff:int}>
+     * @return list<CartItemDifference>
      */
     private function itemsDiff(array $a, array $b): array
     {
         $keyedA = $this->makeKeyedItems($a);
         $keyedB = $this->makeKeyedItems($b);
         $items = [];
+
         foreach ($keyedA as $item) {
             $items[] = $item;
         }
@@ -156,13 +157,13 @@ class Cart implements CartInterface
             return $item->quantity;
         }, $keyedB);
 
-$diff = $keyedBCount;
-        foreach ($keyedACount as $itemId=>$count) {
+        $diff = $keyedBCount;
+        foreach ($keyedACount as $itemId => $count) {
             $diff[$itemId] -= $count;
 
         }
-        $objDiff =[];
-        foreach ($diff as $itemId=>$count) {
+        $objDiff = [];
+        foreach ($diff as $itemId => $count) {
             $foundItem = null;
             foreach ($items as $item) {
                 if ($this->getItemId($item->getItem()) === $itemId) {
@@ -170,21 +171,20 @@ $diff = $keyedBCount;
                 }
 
             }
-            if($foundItem === null) {
+            if ($foundItem === null) {
                 throw new UnexpectedValueException('Item not found');
             }
-            $objDiff[] = [
-                'item'=>$foundItem,
-                'diff'=>$count
-            ];
+            $objDiff[] = new CartItemDifference(item: $foundItem->item,difference: $count);
         }
 
         return $objDiff;
     }
+
+
     /**
      * @param list<PromotionInterface> $a
      * @param list<PromotionInterface> $b
-     * @return list<array{item:PromotionInterface,diff:int}>
+     * @return list<PromotionInterface>
      */
     private function promoDiff(array $a, array $b): array
     {
@@ -197,20 +197,20 @@ $diff = $keyedBCount;
         foreach ($keyedB as $item) {
             $items[] = $item;
         }
-        $keyedACount = array_map(static function (PromotionInterface $item) {
+        $keyedACount = array_map(static function () {
             return 1;
         }, $keyedA);
-        $keyedBCount = array_map(static function (PromotionInterface $item) {
+        $keyedBCount = array_map(static function () {
             return 1;
         }, $keyedB);
 
         $diff = $keyedBCount;
-        foreach ($keyedACount as $itemId=>$count) {
+        foreach ($keyedACount as $itemId => $count) {
             $diff[$itemId] -= $count;
 
         }
-        $objDiff =[];
-        foreach ($diff as $itemId=>$count) {
+        $objDiff = [];
+        foreach ($diff as $itemId => $count) {
             $foundItem = null;
             foreach ($items as $item) {
                 if ($this->getItemId($item) === $itemId) {
@@ -218,13 +218,10 @@ $diff = $keyedBCount;
                 }
 
             }
-            if($foundItem === null) {
+            if ($foundItem === null) {
                 throw new UnexpectedValueException('Item not found');
             }
-            $objDiff[] = [
-                'item'=>$foundItem,
-                'diff'=>$count
-            ];
+            $objDiff[] = $foundItem;
         }
 
         return $objDiff;
@@ -243,6 +240,7 @@ $diff = $keyedBCount;
         }
         return $result;
     }
+
     /**
      * @param list<PromotionInterface> $promotions
      * @return array<string,PromotionInterface>
@@ -288,10 +286,22 @@ $diff = $keyedBCount;
         for ($i = 0; $i < count($promotions); $i++) {
             $promotion = $promotions[$i];
             $newPromotions = $promotion->reducePromotions($this, $this->excludePromotion($promotion, $promotions));
-            if (!$this->promoDiff($promotions, $newPromotions)) {
-                $promotions = $newPromotions;
-                $i = 0;
+            /**
+             * @var list<array{item:PromotionInterface,diff:int}> $diff
+             */
+            $diff = $this->promoDiff($promotions, $newPromotions);
+            if (count($diff) === 0) {
+                continue;
             }
+            foreach ($diff as $item) {
+                if ($item['diff'] === 0) {
+                    continue 2;
+                }
+            }
+            $promoImpact[$this->getItemId($promotion)] = new CartPromoImpact(
+                promotion: $promotion, cartItemsDiff: [], promotionsDiff: $diff
+            );
+            $i = 0;
         }
         /**
          * @var array<string,CartPromoImpact> $promoImpact
@@ -302,12 +312,16 @@ $diff = $keyedBCount;
         for ($i = 0; $i < count($promotions); $i++) {
             $promotion = $promotions[$i];
             $newItems = $promotion->reduceItems($this, $items);
-            if (!$this->itemsDiff(($items), ($newItems))) {
-                $items = $newItems;
-                $i = 0;
-            }
+            $diff =   $this->itemsDiff($items,$newItems);
+            $items = $newItems;
+            $itemId = $this->getItemId($promotion);
+            $promoImpact[$this->getItemId($promotion)] = new CartPromoImpact(
+                promotion: $promotion,
+                cartItemsDiff:$diff,
+                promotionsDiff: isset($promoImpact[$itemId])?$promoImpact[$itemId]->promotionsDiff:[]
+            );
+            $i = 0;
         }
-
 
 
         return new CartTotals(
