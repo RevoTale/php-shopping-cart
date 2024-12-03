@@ -78,7 +78,9 @@ class Cart implements CartInterface
 
     public function removePromotion(PromotionInterface $promotion): void
     {
-        $this->promotions = array_filter($this->promotions, fn(PromotionInterface $i): bool => $this->isTheSamePromotion($promotion, $i));
+        if (isset($this->promotions[$this->getItemId($promotion)])) {
+            unset($this->promotions[$this->getItemId($promotion)]);
+        }
     }
 
     /**
@@ -99,23 +101,10 @@ class Cart implements CartInterface
 
     public function hasPromo(PromotionInterface $promotion): bool
     {
-        return $this->findPromotion($promotion) !== null;
+        return isset($this->promotions[$this->getItemId($promotion)]);
     }
 
-    private function findPromotion(PromotionInterface $promotion): ?PromotionInterface
-    {
-        foreach ($this->promotions as $i) {
-            if ($this->isTheSamePromotion($i, $promotion)) {
-                return $i;
-            }
-        }
-        return null;
-    }
 
-    private function isTheSamePromotion(PromotionInterface $promotion1, PromotionInterface $promotion2): bool
-    {
-        return $this->getItemId($promotion1) && $this->getItemId($promotion2);
-    }
 
     public function clearItems(): void
     {
@@ -361,11 +350,13 @@ class Cart implements CartInterface
             $before = Decimal::fromFloat($item->getUnitPrice() * $quantity);
 
             $subTotal = $before;
-
             foreach ($promotions as $promotion) {
                 $staleCart = new ModifiedCartData(items:$this->convertToModified($items),promotions: $promotions,cart: $this );
                 $subTotal = $promotion->reduceItemSubtotal(cart:$staleCart ,item: $item,subTotal: $subTotal);
-                $itemPromoImpacts[$itemId] = new CartItemPromoImpact(
+                if ($subTotal->isNegative()) {
+                    $subTotal = Decimal::fromInteger(0);
+                }
+                $itemPromoImpacts[$this->getItemId($promotion)] = new CartItemPromoImpact(
                     item: $item,
                     promotion: $promotion,
                     priceImpact: $subTotal

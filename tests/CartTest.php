@@ -20,6 +20,8 @@ final class CartTest extends TestCase
     private CartItemInterface $item2;
 
     private PromotionInterface $promotion;
+    private PromotionInterface $promotionFreeProduct;
+
 
     protected function setUp(): void
     {
@@ -47,6 +49,41 @@ final class CartTest extends TestCase
                 return 120;
             }
         };
+        $this->promotionFreeProduct = new class implements PromotionInterface {
+            public function getCartId(): string
+            {
+                return 'promo_free_product_item_2';
+            }
+
+            public function getCartType(): string
+            {
+                return 'discount';
+            }
+
+            public function isEligible(CartInterface $cart): bool
+            {
+                return true;
+            }
+
+            public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal): Decimal
+            {
+                if ($item->getCartId() === 'item_2') {
+                    return $subTotal->sub(Decimal::fromInteger($item->getUnitPrice()));
+                }
+                return $subTotal;
+            }
+
+            public function reduceItems(ModifiedCartData $cart, array $itemCounters): array
+            {
+                return $itemCounters;
+            }
+
+            public function reducePromotions(ModifiedCartData $cart, array $promotions): array
+            {
+                return $promotions;
+            }
+        };
+
         $this->promotion = new class implements PromotionInterface {
             public function getCartId(): string
             {
@@ -65,6 +102,7 @@ final class CartTest extends TestCase
 
             public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal): Decimal
             {
+
                 return $subTotal->mul(Decimal::fromFloat(0.9));
             }
 
@@ -163,5 +201,19 @@ final class CartTest extends TestCase
         $cart->addPromotion($this->promotion);
         self::assertEquals(640 - 64, $cart->performTotals()->getTotal()->asInteger());
 
+
+    }
+    public function testPromoFreeProduct(): void
+    {
+        $cart = $this->cart;
+        $item = $this->item;
+        $cart->addItem($item, 2);
+        self::assertEquals(400, $cart->performTotals()->getTotal()->asInteger());
+        $item2 = $this->item2;
+        $cart->addItem($item2, 2);
+        $cart->addPromotion($this->promotionFreeProduct);
+        self::assertEquals((640 - 120), $cart->performTotals()->getTotal()->asInteger());
+        $cart->addPromotion($this->promotion);
+        self::assertEquals((640 - 120)*0.9, $cart->performTotals()->getTotal()->asInteger());
     }
 }
