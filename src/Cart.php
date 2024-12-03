@@ -163,6 +163,9 @@ class Cart implements CartInterface
             if ($foundItem === null) {
                 throw new UnexpectedValueException('Item not found');
             }
+            if ($count === 0) {
+                continue;
+            }
             $objDiff[] = new CartItemDifference(item: $foundItem->item, difference: $count);
         }
 
@@ -306,20 +309,24 @@ class Cart implements CartInterface
          */
         $promoImpact = [];
         $this->performPromotionReduce($promotions, $promoImpact);
+
         /**
          * @var array<string,CartItemPromoImpact> $promotionItemsImpact
          */
         $promotionItemsImpact = [];
         $items = $this->performItemReduce($items, $promotions, $promoImpact);
+
         $itemSubTotals = [];
         $this->performItemPriceReduce(promotions: $promotions, items: $items, itemPromoImpacts: $promotionItemsImpact, itemSubTotals: $itemSubTotals);
+        $keyed = $this->makeKeyedItems($items);
+        $keyedPromo =  $this->makeKeyedPromo($promotions);
         return new CartTotals(
             cart: $this,
-            items: $this->makeKeyedItems($items),
+            items: $keyed,
             itemSubTotals: $itemSubTotals,
             promotionItemsImpact: $promotionItemsImpact,
             promotionsImpact: ($promoImpact),
-            promotions: $this->makeKeyedPromo($promotions)
+            promotions:$keyedPromo
         );
 
     }
@@ -398,7 +405,10 @@ class Cart implements CartInterface
                 cartItemsDiff: $diff,
                 promotionsDiff: isset($promoImpact[$itemId]) ? $promoImpact[$itemId]->promotionsDiff : []
             );
-            $i = 0;
+            if (count($diff) !== 0) {
+                $i = 0;
+
+            }
         }
         return $items;
     }
