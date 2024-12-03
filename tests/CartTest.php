@@ -93,6 +93,11 @@ final class CartTest extends TestCase
         $cart->addItem($item2,2);
         self::assertEquals(1640, $cart->performTotals()->getTotal()->asInteger());
 
+        $cart->removeItem($item1Clone, 5);
+        self::assertEquals(640, $cart->performTotals()->getTotal()->asInteger());
+        $cart->removeItem($item1Clone);
+        self::assertEquals(240, $cart->performTotals()->getTotal()->asInteger());
+
 
     }
 }
