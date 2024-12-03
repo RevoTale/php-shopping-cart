@@ -338,21 +338,30 @@ class Cart implements CartInterface
      */
     private function performItemPriceReduce(array $promotions, array $items, array &$itemPromoImpacts, array &$itemSubTotals): void
     {
-        foreach ($promotions as $promotion) {
-            foreach ($items as $counter) {
-                $item = $counter->getItem();
-                $quantity = $this->getItemQuantity($item);
-                $before = Decimal::fromFloat($item->getUnitPrice() * $quantity);
-                $total = $promotion->reduceItemSubtotal($this, $item);
-                $itemPromoImpacts[$this->getItemId($item)] = new CartItemPromoImpact(
+        foreach ($items as $counter) {
+            $item = $counter->getItem();
+
+            $itemId = $this->getItemId($item);
+            $quantity = $this->getItemQuantity($item);
+            $before = Decimal::fromFloat($item->getUnitPrice() * $quantity);
+
+            $subTotal = $before;
+
+            foreach ($promotions as $promotion) {
+                $subTotal = $promotion->reduceItemSubtotal(cart: $this,item: $item,itemQty: $quantity,subTotal: $subTotal);
+                $itemPromoImpacts[$itemId] = new CartItemPromoImpact(
                     item: $item,
                     promotion: $promotion,
-                    priceImpact: $total
+                    priceImpact: $subTotal
                 );
-                $itemSubTotals[$this->getItemId($item)] = new CartItemSubTotal(
-                    item: $item, quantity: $quantity, subTotalBeforePromo: $before, subTotalAfterPromo: $total
-                );
+
             }
+            $itemSubTotals[$itemId] = new CartItemSubTotal(
+                item: $item,
+                quantity: $quantity,
+                subTotalBeforePromo: $before,
+                subTotalAfterPromo: $subTotal
+            );
         }
     }
 

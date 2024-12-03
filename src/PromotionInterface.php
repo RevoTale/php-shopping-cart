@@ -15,7 +15,7 @@ interface PromotionInterface
     /**
      * Apply promotion. Called only if promotion is eligible.
      */
-    public function reduceItemSubtotal(CartInterface $cart,CartItemInterface $item): Decimal;
+    public function reduceItemSubtotal(CartInterface $cart,CartItemInterface $item,int $itemQty,Decimal $subTotal): Decimal;
 
     /**
      * @param list<CartItemCounter> $itemCounters
