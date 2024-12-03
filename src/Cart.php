@@ -184,7 +184,7 @@ class Cart implements CartInterface
     /**
      * @param list<PromotionInterface> $a
      * @param list<PromotionInterface> $b
-     * @return list<PromotionInterface>
+     * @return list<array{item:PromotionInterface,diff:int}>
      */
     private function promoDiff(array $a, array $b): array
     {
@@ -206,7 +206,7 @@ class Cart implements CartInterface
 
         $diff = $keyedBCount;
         foreach ($keyedACount as $itemId => $count) {
-            $diff[$itemId] -= $count;
+            $diff[$itemId] = ($diff[$itemId]??0)-$count;
 
         }
         $objDiff = [];
@@ -221,7 +221,10 @@ class Cart implements CartInterface
             if ($foundItem === null) {
                 throw new UnexpectedValueException('Item not found');
             }
-            $objDiff[] = $foundItem;
+            $objDiff[] = [
+                'item'=>$foundItem,
+                'diff'=>$count
+            ];
         }
 
         return $objDiff;
@@ -284,9 +287,7 @@ class Cart implements CartInterface
                 new ModifiedCartData(items: $this->convertToModified(array_values($this->items)), promotions: $promotions, cart: $this),
                 $this->excludePromotion($promotion, $promotions)
             );
-            /**
-             * @var list<array{item:PromotionInterface,diff:int}> $diff
-             */
+
             $diff = $this->promoDiff($promotions, $newPromotions);
             if (count($diff) === 0) {
                 continue;
