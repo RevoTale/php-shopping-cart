@@ -15,19 +15,20 @@ interface PromotionInterface
     /**
      * Apply promotion. Called only if promotion is eligible.
      */
-    public function reduceItemSubtotal(CartInterface $cart,CartItemInterface $item,int $itemQty,Decimal $subTotal): Decimal;
+    public function reduceItemSubtotal(ModifiedCartData $cart,CartItemInterface $item,Decimal $subTotal): Decimal;
 
     /**
      * @param list<CartItemCounter> $itemCounters
      * @return list<CartItemCounter>
      */
-    public function reduceItems(CartInterface $cart,array $itemCounters): array;
+    public function reduceItems(ModifiedCartData $cart,array $itemCounters): array;
 
     /**
-     * @param list<PromotionInterface> $items
+     * @param ModifiedCartData $cart
+     * @param list<PromotionInterface> $promotions
      * @return list<PromotionInterface>
      */
-    public function reducePromotions(CartInterface $cart,array $items): array;
+    public function reducePromotions(ModifiedCartData $cart,array $promotions): array;
     public function getCartId():string;
     public function getCartType(): string;
 

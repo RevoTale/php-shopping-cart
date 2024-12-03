@@ -280,7 +280,10 @@ class Cart implements CartInterface
         /** @noinspection ForeachInvariantsInspection */
         for ($i = 0; $i < count($promotions); $i++) {
             $promotion = $promotions[$i];
-            $newPromotions = $promotion->reducePromotions($this, $this->excludePromotion($promotion, $promotions));
+            $newPromotions = $promotion->reducePromotions(
+                new ModifiedCartData(items: $this->convertToModified(array_values($this->items)), promotions: $promotions, cart: $this),
+                $this->excludePromotion($promotion, $promotions)
+            );
             /**
              * @var list<array{item:PromotionInterface,diff:int}> $diff
              */
@@ -297,6 +300,7 @@ class Cart implements CartInterface
                 promotion: $promotion, cartItemsDiff: [], promotionsDiff: $diff
             );
             $i = 0;
+            $promotions = $newPromotions;
         }
     }
 
@@ -318,6 +322,7 @@ class Cart implements CartInterface
         $promotionItemsImpact = [];
         $items = $this->performItemReduce($items, $promotions, $promoImpact);
         $itemSubTotals = [];
+
         $this->performItemPriceReduce(promotions: $promotions, items: $items, itemPromoImpacts: $promotionItemsImpact, itemSubTotals: $itemSubTotals);
         return new CartTotals(
             cart: $this,
@@ -327,6 +332,16 @@ class Cart implements CartInterface
             promotionsImpact: ($promoImpact),
             promotions: $this->makeKeyedPromo($promotions)
         );
+
+    }
+
+    /**
+     * @param list<CartItemCounter> $items
+     * @return list<ModifiedCartItemData>
+     */
+    private function convertToModified(array $items):array
+    {
+        return array_map(static fn(CartItemCounter $item)=>new ModifiedCartItemData(item: $item->item,quantity: $item->quantity),$items);
 
     }
 
@@ -348,7 +363,8 @@ class Cart implements CartInterface
             $subTotal = $before;
 
             foreach ($promotions as $promotion) {
-                $subTotal = $promotion->reduceItemSubtotal(cart: $this,item: $item,itemQty: $quantity,subTotal: $subTotal);
+                $staleCart = new ModifiedCartData(items:$this->convertToModified($items),promotions: $promotions,cart: $this );
+                $subTotal = $promotion->reduceItemSubtotal(cart:$staleCart ,item: $item,subTotal: $subTotal);
                 $itemPromoImpacts[$itemId] = new CartItemPromoImpact(
                     item: $item,
                     promotion: $promotion,
@@ -363,7 +379,10 @@ class Cart implements CartInterface
                 subTotalAfterPromo: $subTotal
             );
         }
+
     }
+
+
 
     /**
      * @param list<CartItemCounter> $items
@@ -378,7 +397,8 @@ class Cart implements CartInterface
         /** @noinspection ForeachInvariantsInspection */
         for ($i = 0; $i < count($promotions); $i++) {
             $promotion = $promotions[$i];
-            $newItems = $promotion->reduceItems($this, $items);
+            $modifiedCart = new ModifiedCartData(items: $this->convertToModified($items), promotions: $promotions, cart: $this);
+            $newItems = $promotion->reduceItems($modifiedCart,$items);
             $diff = $this->itemsDiff($items, $newItems);
             $items = $newItems;
             $itemId = $this->getItemId($promotion);

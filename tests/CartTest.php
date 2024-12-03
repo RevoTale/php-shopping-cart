@@ -35,10 +35,62 @@ final class CartTest extends TestCase
                return 200;
             }
         };
+        $item1Clone = new class implements CartItemInterface
+        {
+
+            public function getCartId(): string
+            {
+                return 'item_1';
+            }
+
+            public function getCartType(): string
+            {
+                return 'product';
+            }
+
+            public function setCartContext(CartContext $context): void
+            {
+
+            }
+
+            public function getUnitPrice(): int
+            {
+                return 200;
+            }
+        };
         $cart->addItem($item);
         self::assertEquals(200,$cart->performTotals()->getTotal()->asInteger());
         $cart->addItem($item,2);
         self::assertEquals(600,$cart->performTotals()->getTotal()->asInteger());
+$cart->addItem($item1Clone);
+        self::assertEquals(800,$cart->performTotals()->getTotal()->asInteger());
+$cart->removeItem($item1Clone,2);
+        self::assertEquals(400,$cart->performTotals()->getTotal()->asInteger());
+        $item2 = new class implements CartItemInterface
+        {
+
+            public function getCartId(): string
+            {
+                return 'item_1';
+            }
+
+            public function getCartType(): string
+            {
+                return 'product';
+            }
+
+            public function setCartContext(CartContext $context): void
+            {
+
+            }
+
+            public function getUnitPrice(): int
+            {
+                return 120;
+            }
+        };
+        $cart->addItem($item2,5);
+        self::assertEquals(1000,$cart->performTotals()->getTotal()->asInteger());
 
     }
 }

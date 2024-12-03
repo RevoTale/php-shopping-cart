@@ -12,9 +12,4 @@ final class CartItemCounter
     {
         return $this->item;
     }
-
-    public function getQuantity(): int
-    {
-        return $this->quantity;
-    }
 }
