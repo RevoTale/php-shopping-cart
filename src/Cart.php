@@ -322,7 +322,6 @@ class Cart implements CartInterface
         $promotionItemsImpact = [];
         $items = $this->performItemReduce($items, $promotions, $promoImpact);
         $itemSubTotals = [];
-
         $this->performItemPriceReduce(promotions: $promotions, items: $items, itemPromoImpacts: $promotionItemsImpact, itemSubTotals: $itemSubTotals);
         return new CartTotals(
             cart: $this,
