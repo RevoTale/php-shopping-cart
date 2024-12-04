@@ -303,7 +303,7 @@ class Cart implements CartInterface
          * @var list<CartItemCounter> $items
          */
         $items = array_map(static fn(CartItemCounter $item) => clone $item, $this->items);
-        $promotions = array_values($this->promotions);
+        $promotions = array_values(array_filter($this->promotions,fn(PromotionInterface $p)=>$p->isEligible($this)));
         /**
          * @var array<string,CartPromoImpact> $promoImpact
          */
