@@ -206,4 +206,63 @@ final class CartTest extends TestCase
         $cart->addPromotion($this->promotion);
         self::assertEquals((640 - 120)*0.9, $cart->performTotals()->getTotal()->asInteger());
     }
+
+    public function testEligible():void
+    {
+        $promo1 = new class  extends CartPercentageDiscount  {
+            public function getCartId(): string
+            {
+                return 'promo_10_percent';
+            }
+
+            public function getCartType(): string
+            {
+                return 'discount';
+            }
+
+            public function isEligible(CartInterface $cart): bool
+            {
+                return true;
+            }
+
+            public function getDiscountMultiplier(): float
+            {
+                return 0.9;
+            }
+        };
+        $promo2 = new class  extends CartPercentageDiscount  {
+            public function __construct(public bool $eligible = true)
+            {
+            }
+
+            public function getCartId(): string
+            {
+                return 'promo_20_percent';
+            }
+
+            public function getCartType(): string
+            {
+                return 'discount';
+            }
+
+            public function isEligible(CartInterface $cart): bool
+            {
+                return $this->eligible;
+            }
+
+            public function getDiscountMultiplier(): float
+            {
+                return 0.8;
+            }
+        };
+        $this->cart->addItem($this->item,3);
+        $this->cart->addPromotion($promo2);
+        $this->cart->addPromotion($promo1);
+
+        self::assertEquals(600*0.8*0.9, $this->cart->performTotals()->getTotal()->asInteger());
+        $promo2->eligible = false;
+        self::assertEquals(600*0.9, $this->cart->performTotals()->getTotal()->asInteger());
+
+
+    }
 }
