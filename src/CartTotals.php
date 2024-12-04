@@ -70,4 +70,12 @@ class CartTotals implements CartTotalsInterface
     {
         return array_values($this->promotionsImpact);
     }
+
+    /**
+     * @return list<CartItemSubTotal>
+     */
+    public function getItemSubTotals(): array
+    {
+        return array_values($this->itemSubTotals);
+    }
 }

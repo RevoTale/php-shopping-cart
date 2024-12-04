@@ -8,6 +8,8 @@ use RevoTale\ShoppingCart\Cart;
 use RevoTale\ShoppingCart\CartInterface;
 use RevoTale\ShoppingCart\CartItemInterface;
 use RevoTale\ShoppingCart\CartItemPromoImpact;
+use RevoTale\ShoppingCart\CartItemSubTotal;
+use RevoTale\ShoppingCart\CartPromoImpact;
 use RevoTale\ShoppingCart\Decimal;
 use RevoTale\ShoppingCart\ModifiedCartData;
 use RevoTale\ShoppingCart\PromotionInterface;
@@ -196,6 +198,8 @@ final class CartTest extends TestCase
         $totals = $cart->performTotals();
 
         self::assertEquals([-40, -120, -12], array_map(static fn(CartItemPromoImpact $impact) => $impact->priceImpact->asInteger(), $totals->getPromotionItemsImpact()));
+        self::assertEquals([[400,360],[240,108]], array_map(static fn(CartItemSubTotal $subTotal) =>[$subTotal->subTotalBeforePromo->asInteger(),$subTotal->subTotalAfterPromo->asInteger()], $totals->getItemSubTotals()));
+
         self::assertEquals(['promo_10_percent','promo_free_product_item_2', 'promo_10_percent'], array_map(static fn(CartItemPromoImpact $impact) => $impact->promotion->getCartId(), $totals->getPromotionItemsImpact()));
         self::assertEquals((640 - 120) * 0.9, $totals->getTotal()->asInteger());
     }
