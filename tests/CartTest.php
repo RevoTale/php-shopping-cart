@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use RevoTale\ShoppingCart\Cart;
 use RevoTale\ShoppingCart\CartInterface;
 use RevoTale\ShoppingCart\CartItemInterface;
+use RevoTale\ShoppingCart\CartItemPromoImpact;
 use RevoTale\ShoppingCart\Decimal;
 use RevoTale\ShoppingCart\ModifiedCartData;
 use RevoTale\ShoppingCart\PromotionInterface;
@@ -80,7 +81,7 @@ final class CartTest extends TestCase
             }
         };
 
-        $this->promotion = new class  extends CartPercentageDiscount  {
+        $this->promotion = new class extends CartPercentageDiscount {
             public function getCartId(): string
             {
                 return 'promo_10_percent';
@@ -96,10 +97,10 @@ final class CartTest extends TestCase
                 return true;
             }
 
-           public function getDiscountMultiplier(): float
-           {
-               return 0.9;
-           }
+            public function getDiscountMultiplier(): float
+            {
+                return 0.9;
+            }
         };
         $this->item = new class implements CartItemInterface {
 
@@ -180,6 +181,7 @@ final class CartTest extends TestCase
 
 
     }
+
     public function testPromoFreeProduct(): void
     {
         $cart = $this->cart;
@@ -191,12 +193,16 @@ final class CartTest extends TestCase
         $cart->addPromotion($this->promotionFreeProduct);
         self::assertEquals((640 - 120), $cart->performTotals()->getTotal()->asInteger());
         $cart->addPromotion($this->promotion);
-        self::assertEquals((640 - 120)*0.9, $cart->performTotals()->getTotal()->asInteger());
+$totals = $cart->performTotals();
+
+        self::assertEquals([-120,-40,-12],array_map(static fn(CartItemPromoImpact $impact)=>$impact->priceImpact->asInteger(),$totals->getPromotionItemsImpact()));
+        self::assertEquals(['promo_free_product_item_2','promo_10_percent'],array_map(static fn(CartItemPromoImpact $impact)=>$impact->promotion->getCartId(),$totals->getPromotionItemsImpact()));
+        self::assertEquals((640 - 120) * 0.9, $totals->getTotal()->asInteger());
     }
 
-    public function testEligible():void
+    public function testEligible(): void
     {
-        $promo1 = new class  extends CartPercentageDiscount  {
+        $promo1 = new class extends CartPercentageDiscount {
             public function getCartId(): string
             {
                 return 'promo_10_percent';
@@ -217,7 +223,7 @@ final class CartTest extends TestCase
                 return 0.9;
             }
         };
-        $promo2 = new class  extends CartPercentageDiscount  {
+        $promo2 = new class extends CartPercentageDiscount {
             public function __construct(public bool $eligible = true)
             {
             }
@@ -242,14 +248,20 @@ final class CartTest extends TestCase
                 return 0.8;
             }
         };
-        $this->cart->addItem($this->item,3);
+        $this->cart->addItem($this->item, 3);
         $this->cart->addPromotion($promo2);
         $this->cart->addPromotion($promo1);
+        $totals = $this->cart->performTotals();
+        self::assertCount(2, $totals->getPromotionItemsImpact());
+        self::assertEquals([-120,-48],array_map(static fn(CartItemPromoImpact $impact)=>$impact->priceImpact->asInteger(),$totals->getPromotionItemsImpact()));
+        self::assertEquals(['promo_20_percent','promo_10_percent'],array_map(static fn(CartItemPromoImpact $impact)=>$impact->promotion->getCartId(),$totals->getPromotionItemsImpact()));
 
-        self::assertEquals(600*0.8*0.9, $this->cart->performTotals()->getTotal()->asInteger());
+        self::assertEquals(600 * 0.8 * 0.9, $totals->getTotal()->asInteger());
+
         $promo2->eligible = false;
-        self::assertEquals(600*0.9, $this->cart->performTotals()->getTotal()->asInteger());
-
-
+        $totals = $this->cart->performTotals();
+        self::assertEquals([-60],array_map(static fn(CartItemPromoImpact $impact)=>$impact->priceImpact->asInteger(),$totals->getPromotionItemsImpact()));
+        self::assertEquals(['promo_10_percent'],array_map(static fn(CartItemPromoImpact $impact)=>$impact->promotion->getCartId(),$totals->getPromotionItemsImpact()));
+        self::assertEquals(600 * 0.9, $totals->getTotal()->asInteger());
     }
 }
