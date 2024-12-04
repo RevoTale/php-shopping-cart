@@ -11,6 +11,7 @@ use RevoTale\ShoppingCart\CartItemInterface;
 use RevoTale\ShoppingCart\Decimal;
 use RevoTale\ShoppingCart\ModifiedCartData;
 use RevoTale\ShoppingCart\PromotionInterface;
+use RevoTale\ShoppingCart\PromotionTemplates\CartPercentageDiscount;
 
 final class CartTest extends TestCase
 {
@@ -19,7 +20,7 @@ final class CartTest extends TestCase
     private CartItemInterface $item1Clone;
     private CartItemInterface $item2;
 
-    private PromotionInterface $promotion;
+    private CartPercentageDiscount $promotion;
     private PromotionInterface $promotionFreeProduct;
 
 
@@ -84,7 +85,7 @@ final class CartTest extends TestCase
             }
         };
 
-        $this->promotion = new class implements PromotionInterface {
+        $this->promotion = new class  extends CartPercentageDiscount  {
             public function getCartId(): string
             {
                 return 'promo_10_percent';
@@ -100,21 +101,10 @@ final class CartTest extends TestCase
                 return true;
             }
 
-            public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal): Decimal
-            {
-
-                return $subTotal->mul(Decimal::fromFloat(0.9));
-            }
-
-            public function reduceItems(ModifiedCartData $cart, array $itemCounters): array
-            {
-                return $itemCounters;
-            }
-
-            public function reducePromotions(ModifiedCartData $cart, array $promotions): array
-            {
-                return $promotions;
-            }
+           public function getDiscountMultiplier(): float
+           {
+               return 0.9;
+           }
         };
         $this->item = new class implements CartItemInterface {
 
