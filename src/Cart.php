@@ -311,7 +311,7 @@ class Cart implements CartInterface
         $this->performPromotionReduce($promotions, $promoImpact);
 
         /**
-         * @var array<string,CartItemPromoImpact> $promotionItemsImpact
+         * @var list<CartItemPromoImpact> $promotionItemsImpact
          */
         $promotionItemsImpact = [];
         $items = $this->performItemReduce($items, $promotions, $promoImpact);
@@ -344,7 +344,7 @@ class Cart implements CartInterface
     /**
      * @param list<PromotionInterface> $promotions
      * @param list<CartItemCounter> $items
-     * @param array<string,CartItemPromoImpact> $itemPromoImpacts
+     * @param list<CartItemPromoImpact> $itemPromoImpacts
      * @param array<string,CartItemSubTotal> $itemSubTotals
      */
     private function performItemPriceReduce(array $promotions, array $items, array &$itemPromoImpacts, array &$itemSubTotals): void
@@ -359,15 +359,20 @@ class Cart implements CartInterface
             $subTotal = $before;
             foreach ($promotions as $promotion) {
                 $staleCart = new ModifiedCartData(items: $this->convertToModified($items), promotions: $promotions, cart: $this);
+                $subTotalBeforePromoItem  = $subTotal;
+
                 $subTotal = $promotion->reduceItemSubtotal(cart: $staleCart, item: $item, subTotal: $subTotal);
                 if ($subTotal->isNegative()) {
                     $subTotal = Decimal::fromInteger(0);
                 }
-                $itemPromoImpacts[$this->getItemId($promotion)] = new CartItemPromoImpact(
-                    item: $item,
-                    promotion: $promotion,
-                    priceImpact: $subTotal
+                $impact = $subTotal->sub($subTotalBeforePromoItem);
+                if (!$impact->isZero()) {
+                    $itemPromoImpacts[] = new CartItemPromoImpact(
+                        item: $item,
+                        promotion: $promotion,
+                        priceImpact: $impact
                 );
+                }
 
             }
             $itemSubTotals[$itemId] = new CartItemSubTotal(
