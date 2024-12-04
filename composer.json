@@ -1,6 +1,6 @@
 {
   "name": "revotale/shopping-cart",
-  "description": "PHP library providing shopping cart functionality",
+  "description": "PHP library providing basic shopping cart object and interfaces to implement any type of cart items + promotions combination.",
   "license": "MIT",
   "authors": [
     {
