@@ -349,6 +349,7 @@ class Cart implements CartInterface
      */
     private function performItemPriceReduce(array $promotions, array $items, array &$itemPromoImpacts, array &$itemSubTotals): void
     {
+        //TODO make something to have ability implement fixed cart discount case (when there are items cheaper, to put this price on other)
         foreach ($items as $counter) {
             $item = $counter->getItem();
 
