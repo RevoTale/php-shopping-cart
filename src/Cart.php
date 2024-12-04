@@ -7,6 +7,7 @@ use UnexpectedValueException;
 
 class Cart implements CartInterface
 {
+
     /**
      * @var array<string,CartItemCounter> $items
      */
@@ -105,7 +106,6 @@ class Cart implements CartInterface
     }
 
 
-
     public function clearItems(): void
     {
         $this->items = [];
@@ -198,7 +198,7 @@ class Cart implements CartInterface
 
         $diff = $keyedBCount;
         foreach ($keyedACount as $itemId => $count) {
-            $diff[$itemId] = ($diff[$itemId]??0)-$count;
+            $diff[$itemId] = ($diff[$itemId] ?? 0) - $count;
 
         }
         $objDiff = [];
@@ -214,8 +214,8 @@ class Cart implements CartInterface
                 throw new UnexpectedValueException('Item not found');
             }
             $objDiff[] = [
-                'item'=>$foundItem,
-                'diff'=>$count
+                'item' => $foundItem,
+                'diff' => $count
             ];
         }
 
@@ -303,7 +303,7 @@ class Cart implements CartInterface
          * @var list<CartItemCounter> $items
          */
         $items = array_map(static fn(CartItemCounter $item) => clone $item, $this->items);
-        $promotions = array_values(array_filter($this->promotions,fn(PromotionInterface $p)=>$p->isEligible($this)));
+        $promotions = array_values(array_filter($this->promotions, fn(PromotionInterface $p) => $p->isEligible($this)));
         /**
          * @var array<string,CartPromoImpact> $promoImpact
          */
@@ -319,14 +319,14 @@ class Cart implements CartInterface
         $itemSubTotals = [];
         $this->performItemPriceReduce(promotions: $promotions, items: $items, itemPromoImpacts: $promotionItemsImpact, itemSubTotals: $itemSubTotals);
         $keyed = $this->makeKeyedItems($items);
-        $keyedPromo =  $this->makeKeyedPromo($promotions);
+        $keyedPromo = $this->makeKeyedPromo($promotions);
         return new CartTotals(
             cart: $this,
             items: $keyed,
             itemSubTotals: $itemSubTotals,
             promotionItemsImpact: $promotionItemsImpact,
             promotionsImpact: ($promoImpact),
-            promotions:$keyedPromo
+            promotions: $keyedPromo
         );
 
     }
@@ -335,9 +335,9 @@ class Cart implements CartInterface
      * @param list<CartItemCounter> $items
      * @return list<ModifiedCartItemData>
      */
-    private function convertToModified(array $items):array
+    private function convertToModified(array $items): array
     {
-        return array_map(static fn(CartItemCounter $item)=>new ModifiedCartItemData(item: $item->item,quantity: $item->quantity),$items);
+        return array_map(static fn(CartItemCounter $item) => new ModifiedCartItemData(item: $item->item, quantity: $item->quantity), $items);
 
     }
 
@@ -358,8 +358,8 @@ class Cart implements CartInterface
 
             $subTotal = $before;
             foreach ($promotions as $promotion) {
-                $staleCart = new ModifiedCartData(items:$this->convertToModified($items),promotions: $promotions,cart: $this );
-                $subTotal = $promotion->reduceItemSubtotal(cart:$staleCart ,item: $item,subTotal: $subTotal);
+                $staleCart = new ModifiedCartData(items: $this->convertToModified($items), promotions: $promotions, cart: $this);
+                $subTotal = $promotion->reduceItemSubtotal(cart: $staleCart, item: $item, subTotal: $subTotal);
                 if ($subTotal->isNegative()) {
                     $subTotal = Decimal::fromInteger(0);
                 }
@@ -381,7 +381,6 @@ class Cart implements CartInterface
     }
 
 
-
     /**
      * @param list<CartItemCounter> $items
      *
@@ -396,7 +395,7 @@ class Cart implements CartInterface
         for ($i = 0; $i < count($promotions); $i++) {
             $promotion = $promotions[$i];
             $modifiedCart = new ModifiedCartData(items: $this->convertToModified($items), promotions: $promotions, cart: $this);
-            $newItems = $promotion->reduceItems($modifiedCart,$items);
+            $newItems = $promotion->reduceItems($modifiedCart, $items);
             $diff = $this->itemsDiff($items, $newItems);
             $items = $newItems;
             $itemId = $this->getItemId($promotion);
@@ -412,4 +411,5 @@ class Cart implements CartInterface
         }
         return $items;
     }
+
 }

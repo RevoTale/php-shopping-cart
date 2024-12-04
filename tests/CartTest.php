@@ -5,7 +5,6 @@ namespace RevoTale\ShoppingCart\Tests;
 
 use PHPUnit\Framework\TestCase;
 use RevoTale\ShoppingCart\Cart;
-use RevoTale\ShoppingCart\CartContext;
 use RevoTale\ShoppingCart\CartInterface;
 use RevoTale\ShoppingCart\CartItemInterface;
 use RevoTale\ShoppingCart\Decimal;
@@ -40,10 +39,6 @@ final class CartTest extends TestCase
                 return 'product';
             }
 
-            public function setCartContext(CartContext $context): void
-            {
-
-            }
 
             public function getUnitPrice(): int
             {
@@ -118,10 +113,6 @@ final class CartTest extends TestCase
                 return 'product';
             }
 
-            public function setCartContext(CartContext $context): void
-            {
-
-            }
 
             public function getUnitPrice(): int
             {
@@ -140,10 +131,6 @@ final class CartTest extends TestCase
                 return 'product';
             }
 
-            public function setCartContext(CartContext $context): void
-            {
-
-            }
 
             public function getUnitPrice(): int
             {

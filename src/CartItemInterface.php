@@ -16,10 +16,6 @@ interface CartItemInterface
     public function getCartType(): string;
 
     /**
-     * Set cart context.
-     */
-    public function setCartContext(CartContext $context): void;
-    /**
      * Get unit price in minimal currency unit.
      */
     public function getUnitPrice(): int;
