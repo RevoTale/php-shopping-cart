@@ -4,6 +4,7 @@ namespace RevoTale\ShoppingCart\PromotionTemplates;
 
 use RevoTale\ShoppingCart\CartInterface;
 use RevoTale\ShoppingCart\CartItemInterface;
+use RevoTale\ShoppingCart\CartItemSubTotalReducer;
 use RevoTale\ShoppingCart\PromoCalculationsContext;
 use RevoTale\ShoppingCart\Decimal;
 use RevoTale\ShoppingCart\ModifiedCartData;
@@ -23,19 +24,29 @@ abstract class CartFixedSumDiscount implements PromotionInterface
     public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal, PromoCalculationsContext $context): Decimal
     {
 
-        $multiplier = $this->getDiscountMultiplier($cart);
-
-        return $subTotal->mul($multiplier);
+        return $subTotal;
     }
 
-    private function getDiscountMultiplier(ModifiedCartData $cartData): Decimal
+    /**
+     * @param list<CartItemSubTotalReducer> $items
+     * @return Decimal
+     */
+    private function getDiscountMultiplier(array $items): Decimal
     {
         $total = Decimal::fromInteger(0);
-        foreach ($cartData->items as $item) {
-            $total = $total->add($item->getPriceTotal());
+        foreach ($items as $item) {
+            $total = $total->add($item->subTotal);
         }
         return Decimal::fromFloat($this->getDiscountAmount())->div($total);
     }
+    public function reduceItemsSubTotal(array $items, PromoCalculationsContext $context,ModifiedCartData $data): void
+    {
+        $multiplier = $this->getDiscountMultiplier($items);
+        foreach ($items as $item) {
+            $item->subTotal = $item->subTotal->mul($multiplier);
+        }
+    }
+
 
     public function reduceItems(ModifiedCartData $cart, array $itemCounters): array
     {
@@ -45,6 +56,7 @@ abstract class CartFixedSumDiscount implements PromotionInterface
 
     public function reducePromotions(ModifiedCartData $cart, array $promotions): array
     {
+
         return $promotions;
     }
 }

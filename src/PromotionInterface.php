@@ -33,4 +33,9 @@ interface PromotionInterface
     public function getCartId():string;
     public function getCartType(): string;
 
+    /**
+     * @param list<CartItemSubTotalReducer> $items
+     */
+    public function reduceItemsSubTotal(array $items,PromoCalculationsContext $context,ModifiedCartData $data):void;
+
 }

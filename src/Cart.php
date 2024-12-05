@@ -303,6 +303,9 @@ class Cart implements CartInterface
          * @var list<CartItemCounter> $items
          */
         $items = array_map(static fn(CartItemCounter $item) => clone $item, $this->items);
+        /**
+         * @var list<PromotionInterface> $promotions
+         */
         $promotions = array_values(array_filter($this->promotions, fn(PromotionInterface $p) => $p->isEligible($this)));
         /**
          * @var array<string,CartPromoImpact> $promoImpact
@@ -315,9 +318,17 @@ class Cart implements CartInterface
          */
         $promotionItemsImpact = [];
         $items = $this->performItemReduce($items, $promotions, $promoImpact);
-
+        /**
+         * @var array<string,CartItemSubTotal> $itemSubTotals
+         */
         $itemSubTotals = [];
-        $this->performItemPriceReduce(promotions: $promotions, items: $items, itemPromoImpacts: $promotionItemsImpact, itemSubTotals: $itemSubTotals);
+        $context = new PromoCalculationsContext();
+        $this->performItemPriceReduce(promotions: $promotions, items: $items, itemPromoImpacts: $promotionItemsImpact, itemSubTotals: $itemSubTotals, context: $context);
+
+        $this->performAfterPriceReduce(
+            itemSubTotals: $itemSubTotals, promotions: $promotions, promotionItemsImpact: $promotionItemsImpact, items: $items, context: $context
+        );
+
         $keyed = $this->makeKeyedItems($items);
         $keyedPromo = $this->makeKeyedPromo($promotions);
         return new CartTotals(
@@ -332,14 +343,54 @@ class Cart implements CartInterface
     }
 
     /**
+     * @param list<PromotionInterface> $promotions
+     * @param list<CartItemCounter> $items
+     * @param list<CartItemPromoImpact> $promotionItemsImpact
+     * @param array<string,CartItemSubTotal> $itemSubTotals
+     * @param PromoCalculationsContext $context
+     * @return void
+     */
+    private function performAfterPriceReduce(array &$itemSubTotals, array $promotions, array &$promotionItemsImpact, array $items, PromoCalculationsContext $context): void
+    {
+
+        foreach ($promotions as $promotion) {
+
+            $totalsContainer = [];
+            foreach ($itemSubTotals as $subTotal) {
+                $totalsContainer[] = new CartItemSubTotalReducer(
+                    item: $subTotal->item, quantity: $subTotal->quantity, subTotal: $subTotal->subTotalAfterPromo,
+                );
+            }
+            $promotion->reduceItemsSubTotal($totalsContainer, $context, new ModifiedCartData(items: $this->convertToModified($items), promotions: $promotions, cart: $this));
+            foreach ($totalsContainer as $subTotal) {
+                $itemId = $this->getItemId($subTotal->item);
+                $diff = $subTotal->subTotal->sub($itemSubTotals[$itemId]->subTotalAfterPromo);
+                if (!$diff->isZero()) {
+                    $promotionItemsImpact[] = new CartItemPromoImpact(
+                        item: $subTotal->item,
+                        promotion: $promotion,
+                        priceImpact: $diff
+                    );
+                }
+                $itemSubTotals[$itemId] = new CartItemSubTotal(
+                    item: $subTotal->item,
+                    quantity: $subTotal->quantity,
+                    subTotalBeforePromo: $itemSubTotals[$itemId]->subTotalBeforePromo,
+                    subTotalAfterPromo: $subTotal->subTotal
+                );
+            }
+        }
+    }
+
+
+    /**
      * @param list<CartItemCounter> $items
      * @return list<ModifiedCartItemData>
      */
     private function convertToModified(array $items): array
     {
         return array_map(
-            static fn(CartItemCounter $item) =>
-            new ModifiedCartItemData(
+            static fn(CartItemCounter $item) => new ModifiedCartItemData(
                 item: $item->item,
                 quantity: $item->quantity
             ), $items
@@ -352,11 +403,10 @@ class Cart implements CartInterface
      * @param list<CartItemPromoImpact> $itemPromoImpacts
      * @param array<string,CartItemSubTotal> $itemSubTotals
      */
-    private function performItemPriceReduce(array $promotions, array $items, array &$itemPromoImpacts, array &$itemSubTotals): void
+    private function performItemPriceReduce(array $promotions, array $items, array &$itemPromoImpacts, array &$itemSubTotals, PromoCalculationsContext $context): void
 
     {
         //TODO make something to have ability implement fixed cart discount case (when there are items cheaper, to put this price on other)
-        $context = new PromoCalculationsContext();
         foreach ($items as $counter) {
             $item = $counter->getItem();
 
@@ -369,7 +419,13 @@ class Cart implements CartInterface
                 $staleCart = new ModifiedCartData(items: $this->convertToModified($items), promotions: $promotions, cart: $this);
                 $subTotalBeforePromoItem = $subTotal;
 
-                $subTotal = $promotion->reduceItemSubtotal(cart: $staleCart, item: $item, subTotal: $subTotal,context:$context);
+                $subTotal = $promotion
+                    ->reduceItemSubtotal(
+                        cart: $staleCart,
+                        item: $item,
+                        subTotal: $subTotal,
+                        context: $context
+                    );
                 if ($subTotal->isNegative()) {
                     $subTotal = Decimal::fromInteger(0);
                 }

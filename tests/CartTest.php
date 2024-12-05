@@ -14,6 +14,7 @@ use RevoTale\ShoppingCart\PromoCalculationsContext;
 use RevoTale\ShoppingCart\Decimal;
 use RevoTale\ShoppingCart\ModifiedCartData;
 use RevoTale\ShoppingCart\PromotionInterface;
+use RevoTale\ShoppingCart\PromotionTemplates\CartFixedSumDiscount;
 use RevoTale\ShoppingCart\PromotionTemplates\CartPercentageDiscount;
 
 final class CartTest extends TestCase
@@ -64,6 +65,10 @@ final class CartTest extends TestCase
             {
                 return true;
             }
+            public function reduceItemsSubTotal(array $items, PromoCalculationsContext $context,ModifiedCartData $data): void
+            {
+
+            }
 
             public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal, PromoCalculationsContext $context): Decimal
             {
@@ -88,6 +93,10 @@ final class CartTest extends TestCase
             public function getCartId(): string
             {
                 return 'promo_10_percent';
+            }
+            public function reduceItemsSubTotal(array $items, PromoCalculationsContext $context,ModifiedCartData $data): void
+            {
+
             }
 
             public function getCartType(): string
@@ -203,11 +212,45 @@ final class CartTest extends TestCase
 
         self::assertEquals(['promo_10_percent','promo_free_product_item_2', 'promo_10_percent'], array_map(static fn(CartItemPromoImpact $impact) => $impact->promotion->getCartId(), $totals->getPromotionItemsImpact()));
         self::assertEquals((640 - 120) * 0.9, $totals->getTotal()->asInteger());
+        $cart->addPromotion(new class extends CartFixedSumDiscount{
+            public function reduceItemsSubTotal(array $items, PromoCalculationsContext $context,ModifiedCartData $data): void
+            {
+
+            }
+            public function isEligible(CartInterface $cart): bool
+            {
+               return true;
+            }
+
+            public function getCartId(): string
+            {
+               return 'fixed_discount_1';
+            }
+
+            public function getCartType(): string
+            {
+                return 'discount';
+            }
+
+            public function getDiscountAmount(): float
+            {
+              return 200;
+            }
+        });
+        $totals = $cart->performTotals();
+
+
+        self::assertEquals((640 - 120) * 0.9-200,$totals->getTotal()->asInteger());
+
     }
 
     public function testEligible(): void
     {
         $promo1 = new class extends CartPercentageDiscount {
+            public function reduceItemsSubTotal(array $items, PromoCalculationsContext $context,ModifiedCartData $data): void
+            {
+
+            }
             public function getCartId(): string
             {
                 return 'promo_10_percent';
@@ -229,6 +272,10 @@ final class CartTest extends TestCase
             }
         };
         $promo2 = new class extends CartPercentageDiscount {
+            public function reduceItemsSubTotal(array $items, PromoCalculationsContext $context,ModifiedCartData $data): void
+            {
+
+            }
             public function __construct(public bool $eligible = true)
             {
             }
