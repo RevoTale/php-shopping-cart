@@ -10,6 +10,7 @@ use RevoTale\ShoppingCart\CartItemInterface;
 use RevoTale\ShoppingCart\CartItemPromoImpact;
 use RevoTale\ShoppingCart\CartItemSubTotal;
 use RevoTale\ShoppingCart\CartPromoImpact;
+use RevoTale\ShoppingCart\Context;
 use RevoTale\ShoppingCart\Decimal;
 use RevoTale\ShoppingCart\ModifiedCartData;
 use RevoTale\ShoppingCart\PromotionInterface;
@@ -64,7 +65,7 @@ final class CartTest extends TestCase
                 return true;
             }
 
-            public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal): Decimal
+            public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal,Context $context): Decimal
             {
                 if ($item->getCartId() === 'item_2') {
                     return $subTotal->sub(Decimal::fromInteger($item->getUnitPrice()));

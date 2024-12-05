@@ -4,6 +4,7 @@ namespace RevoTale\ShoppingCart\PromotionTemplates;
 
 use RevoTale\ShoppingCart\CartInterface;
 use RevoTale\ShoppingCart\CartItemInterface;
+use RevoTale\ShoppingCart\Context;
 use RevoTale\ShoppingCart\Decimal;
 use RevoTale\ShoppingCart\ModifiedCartData;
 use RevoTale\ShoppingCart\PromotionInterface;
@@ -18,7 +19,7 @@ abstract class CartPercentageDiscount implements PromotionInterface
 
     abstract public function getDiscountMultiplier(): float;
 
-    public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal): Decimal
+    public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal,Context $context): Decimal
     {
 
         return $subTotal->mul(Decimal::fromFloat($this->getDiscountMultiplier()));

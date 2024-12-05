@@ -350,6 +350,7 @@ class Cart implements CartInterface
     private function performItemPriceReduce(array $promotions, array $items, array &$itemPromoImpacts, array &$itemSubTotals): void
     {
         //TODO make something to have ability implement fixed cart discount case (when there are items cheaper, to put this price on other)
+        $context = new Context();
         foreach ($items as $counter) {
             $item = $counter->getItem();
 
@@ -360,9 +361,9 @@ class Cart implements CartInterface
             $subTotal = $before;
             foreach ($promotions as $promotion) {
                 $staleCart = new ModifiedCartData(items: $this->convertToModified($items), promotions: $promotions, cart: $this);
-                $subTotalBeforePromoItem  = $subTotal;
+                $subTotalBeforePromoItem = $subTotal;
 
-                $subTotal = $promotion->reduceItemSubtotal(cart: $staleCart, item: $item, subTotal: $subTotal);
+                $subTotal = $promotion->reduceItemSubtotal(cart: $staleCart, item: $item, subTotal: $subTotal,context:$context);
                 if ($subTotal->isNegative()) {
                     $subTotal = Decimal::fromInteger(0);
                 }
@@ -372,7 +373,7 @@ class Cart implements CartInterface
                         item: $item,
                         promotion: $promotion,
                         priceImpact: $impact
-                );
+                    );
                 }
 
             }
