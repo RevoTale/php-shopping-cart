@@ -24,4 +24,12 @@ final readonly class ModifiedCartData
         }
         return 0;
     }
+    public function getTotalQuantity(): int
+    {
+        $total = 0;
+        foreach ($this->items as $item) {
+            $total += $item->quantity;
+        }
+        return $total;
+    }
 }

@@ -337,8 +337,13 @@ class Cart implements CartInterface
      */
     private function convertToModified(array $items): array
     {
-        return array_map(static fn(CartItemCounter $item) => new ModifiedCartItemData(item: $item->item, quantity: $item->quantity), $items);
-
+        return array_map(
+            static fn(CartItemCounter $item) =>
+            new ModifiedCartItemData(
+                item: $item->item,
+                quantity: $item->quantity
+            ), $items
+        );
     }
 
     /**
@@ -348,9 +353,10 @@ class Cart implements CartInterface
      * @param array<string,CartItemSubTotal> $itemSubTotals
      */
     private function performItemPriceReduce(array $promotions, array $items, array &$itemPromoImpacts, array &$itemSubTotals): void
+
     {
         //TODO make something to have ability implement fixed cart discount case (when there are items cheaper, to put this price on other)
-        $context = new Context();
+        $context = new PromoCalculationsContext();
         foreach ($items as $counter) {
             $item = $counter->getItem();
 
@@ -397,6 +403,7 @@ class Cart implements CartInterface
      */
     private function performItemReduce(array $items, array $promotions, array &$promoImpact): array
     {
+        $context = new PromoCalculationsContext();
         /** @noinspection SlowArrayOperationsInLoopInspection */
         /** @noinspection ForeachInvariantsInspection */
         for ($i = 0; $i < count($promotions); $i++) {

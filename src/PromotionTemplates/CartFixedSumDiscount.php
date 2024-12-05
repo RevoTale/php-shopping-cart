@@ -9,20 +9,32 @@ use RevoTale\ShoppingCart\Decimal;
 use RevoTale\ShoppingCart\ModifiedCartData;
 use RevoTale\ShoppingCart\PromotionInterface;
 
-abstract class CartPercentageDiscount implements PromotionInterface
+abstract class CartFixedSumDiscount implements PromotionInterface
 {
+
     abstract public function getCartId(): string;
 
     abstract public function getCartType(): string;
 
     abstract public function isEligible(CartInterface $cart): bool;
 
-    abstract public function getDiscountMultiplier(): float;
+    abstract public function getDiscountAmount(): float;
 
     public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal, PromoCalculationsContext $context): Decimal
     {
 
-        return $subTotal->mul(Decimal::fromFloat($this->getDiscountMultiplier()));
+        $multiplier = $this->getDiscountMultiplier($cart);
+
+        return $subTotal->mul($multiplier);
+    }
+
+    private function getDiscountMultiplier(ModifiedCartData $cartData): Decimal
+    {
+        $total = Decimal::fromInteger(0);
+        foreach ($cartData->items as $item) {
+            $total = $total->add($item->getPriceTotal());
+        }
+        return Decimal::fromFloat($this->getDiscountAmount())->div($total);
     }
 
     public function reduceItems(ModifiedCartData $cart, array $itemCounters): array

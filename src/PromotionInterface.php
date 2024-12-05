@@ -14,9 +14,9 @@ interface PromotionInterface
     public function isEligible(CartInterface $cart): bool;
     /**
      * Apply promotion. Called only if promotion is eligible.
-     * @param Context $context Can be used to contain variables for inner algorithm for promotions. Context is being reset before calculation of cart total starts.
+     * @param PromoCalculationsContext $context Can be used to contain variables for inner algorithm for promotions. Context is being reset before calculation of cart total starts.
      */
-    public function reduceItemSubtotal(ModifiedCartData $cart,CartItemInterface $item,Decimal $subTotal,Context $context): Decimal;
+    public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal, PromoCalculationsContext $context): Decimal;
 
     /**
      * @param list<CartItemCounter> $itemCounters
