@@ -427,7 +427,7 @@ class Cart implements CartInterface
                         context: $context
                     );
                 if ($subTotal->isNegative()) {
-                    $subTotal = Decimal::fromInteger(0,4);
+                    $subTotal = Decimal::fromInteger(0);
                 }
 
                 $impact = $subTotal->sub($subTotalBeforePromoItem);
