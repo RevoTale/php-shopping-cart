@@ -235,6 +235,12 @@ final class CartTest extends TestCase
         });
         $totals = $cart->performTotals();
         self::assertEquals((640 - 120) * 0.9-200,$totals->getTotal()->asInteger());
+        self::assertEquals(['promo_10_percent','promo_free_product_item_2', 'promo_10_percent','fixed_discount_1','fixed_discount_1'], array_map(static fn(CartItemPromoImpact $impact) => $impact->promotion->getCartId(), $totals->getPromotionItemsImpact()));
+
+
+        self::assertEquals([-40, -120, -12,-153,-46], array_map(static fn(CartItemPromoImpact $impact) => $impact->priceImpact->asInteger(), $totals->getPromotionItemsImpact()));
+        self::assertEquals([[400,206],[240,61]], array_map(static fn(CartItemSubTotal $subTotal) =>[$subTotal->subTotalBeforePromo->asInteger(),$subTotal->subTotalAfterPromo->asInteger()], $totals->getItemSubTotals()));
+
 
     }
 
