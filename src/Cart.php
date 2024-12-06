@@ -364,7 +364,7 @@ class Cart implements CartInterface
             $promotion->reduceItemsSubTotal($totalsContainer, $context, new ModifiedCartData(items: $this->convertToModified($items), promotions: $promotions, cart: $this));
             foreach ($totalsContainer as $subTotalCounter) {
                 $itemId = $this->getItemId($subTotalCounter->item);
-                $diff = $subTotalCounter->subTotal->sub($itemSubTotals[$itemId]->subTotalAfterPromo);
+                $diff = $subTotalCounter->subTotal->sub($itemSubTotals[$itemId]->subTotalAfterPromo,5);
                 if (!$diff->isZero()) {
                     $promotionItemsImpact[] = new CartItemPromoImpact(
                         item: $subTotalCounter->item,
@@ -430,7 +430,7 @@ class Cart implements CartInterface
                     $subTotal = Decimal::fromInteger(0);
                 }
 
-                $impact = $subTotal->sub($subTotalBeforePromoItem);
+                $impact = $subTotal->sub($subTotalBeforePromoItem,5);
                 if (!$impact->isZero()) {
                     $itemPromoImpacts[] = new CartItemPromoImpact(
                         item: $item,
