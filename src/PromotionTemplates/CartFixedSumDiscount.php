@@ -35,15 +35,17 @@ abstract class CartFixedSumDiscount implements PromotionInterface
     {
         $total = Decimal::fromInteger(0);
         foreach ($items as $item) {
-            $total = $total->add($item->subTotal);
+            $total = $total->add($item->subTotal,4);
         }
-        return Decimal::fromFloat($this->getDiscountAmount())->div($total);
+        return Decimal::fromInteger(1)->sub(Decimal::fromFloat($this->getDiscountAmount(),4)->div($total,10));
     }
     public function reduceItemsSubTotal(array $items, PromoCalculationsContext $context,ModifiedCartData $data): void
     {
+
         $multiplier = $this->getDiscountMultiplier($items);
         foreach ($items as $item) {
-            $item->subTotal = $item->subTotal->mul($multiplier);
+            $item->subTotal = $item->subTotal->mul($multiplier,10);
+
         }
     }
 

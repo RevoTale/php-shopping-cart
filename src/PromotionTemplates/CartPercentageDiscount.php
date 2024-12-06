@@ -22,7 +22,7 @@ abstract class CartPercentageDiscount implements PromotionInterface
     public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal, PromoCalculationsContext $context): Decimal
     {
 
-        return $subTotal->mul(Decimal::fromFloat($this->getDiscountMultiplier()));
+        return $subTotal->mul(Decimal::fromFloat($this->getDiscountMultiplier()),4);
     }
 
     public function reduceItems(ModifiedCartData $cart, array $itemCounters): array

@@ -35,7 +35,7 @@ class CartTotals implements CartTotalsInterface
     {
         $total = Decimal::fromInteger(0);
         foreach ($this->itemSubTotals as $item) {
-            $total = $total->add($item->subTotalAfterPromo);
+            $total = $total->add($item->subTotalAfterPromo,5);
         }
 
         return $total;

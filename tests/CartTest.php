@@ -213,10 +213,6 @@ final class CartTest extends TestCase
         self::assertEquals(['promo_10_percent','promo_free_product_item_2', 'promo_10_percent'], array_map(static fn(CartItemPromoImpact $impact) => $impact->promotion->getCartId(), $totals->getPromotionItemsImpact()));
         self::assertEquals((640 - 120) * 0.9, $totals->getTotal()->asInteger());
         $cart->addPromotion(new class extends CartFixedSumDiscount{
-            public function reduceItemsSubTotal(array $items, PromoCalculationsContext $context,ModifiedCartData $data): void
-            {
-
-            }
             public function isEligible(CartInterface $cart): bool
             {
                return true;
@@ -238,8 +234,6 @@ final class CartTest extends TestCase
             }
         });
         $totals = $cart->performTotals();
-
-
         self::assertEquals((640 - 120) * 0.9-200,$totals->getTotal()->asInteger());
 
     }
