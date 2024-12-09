@@ -280,7 +280,7 @@ final class CartTest extends TestCase
                 return 200;
             }
 
-            public function ssreducePromotions(ModifiedCartData $cart, array $promotions): array
+            public function reducePromotions(ModifiedCartData $cart, array $promotions): array
             {
                 $promotions = parent::reducePromotions($cart, $promotions);
                 return array_values(array_filter($promotions, static fn(PromotionInterface $promotion) => $promotion->getCartId() !== 'promo_free_product_item_2'));
