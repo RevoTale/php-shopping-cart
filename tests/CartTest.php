@@ -197,7 +197,7 @@ final class CartTest extends TestCase
 
     }
 
-    public function testPromoHasNiceOrdering():void
+    public function testPromoHasNiceOrdering(): void
     {
 
         $cart = $this->cart;
@@ -207,7 +207,7 @@ final class CartTest extends TestCase
         $cart->addPromotion($this->promotionFreeProduct);
         $cart->addItem($item, 2);
         $cart->addPromotion($this->promotion);
-        self::assertEquals([$this->promotionFreeProduct,$this->promotion],$cart->getPromotions());
+        self::assertEquals([$this->promotionFreeProduct, $this->promotion], $cart->getPromotions());
     }
 
     public function testPromoFreeProduct(): void
@@ -291,7 +291,8 @@ final class CartTest extends TestCase
         self::assertCount(1, $totals->getPromotionsImpact()[0]->getRemovedPromos());
 
         self::assertEquals((640) * 0.9 - 200, $totals->getTotal()->asInteger());
-
+        self::assertTrue($totals->isPromotionDiff());
+        self::assertNotTrue($totals->isItemsDiff());
 
     }
 
@@ -299,13 +300,13 @@ final class CartTest extends TestCase
     {
         $diff = CartHelpers::promoDiff([$this->promotion, $this->promotionFreeProduct], [$this->promotionFreeProduct]);
         self::assertEquals([[
-            'diff'=>-1,
-            'item'=>$this->promotion
+            'diff' => -1,
+            'item' => $this->promotion
         ]], $diff);
-        $diff = CartHelpers::promoDiff([$this->promotionFreeProduct],[$this->promotion, $this->promotionFreeProduct]);
+        $diff = CartHelpers::promoDiff([$this->promotionFreeProduct], [$this->promotion, $this->promotionFreeProduct]);
         self::assertEquals([[
-            'diff'=>1,
-            'item'=>$this->promotion
+            'diff' => 1,
+            'item' => $this->promotion
         ]], $diff);
     }
 
@@ -382,5 +383,7 @@ final class CartTest extends TestCase
         self::assertEquals([-60], array_map(static fn(CartItemPromoImpact $impact) => $impact->priceImpact->asInteger(), $totals->getPromotionItemsImpact()));
         self::assertEquals(['promo_10_percent'], array_map(static fn(CartItemPromoImpact $impact) => $impact->promotion->getCartId(), $totals->getPromotionItemsImpact()));
         self::assertEquals(600 * 0.9, $totals->getTotal()->asInteger());
+        self::assertFalse($totals->isPromotionDiff());
+        self::assertFalse($totals->isItemsDiff());
     }
 }
