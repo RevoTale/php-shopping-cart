@@ -52,7 +52,7 @@ class CartTotals implements CartTotalsInterface
 
     public function getItemQuantity(CartItemInterface $item): int
     {
-        return $this->items[$this->cart->getItemId($item)]->quantity;
+        return $this->items[CartHelpers::getItemId($item)]->quantity;
     }
 
     /**
@@ -70,6 +70,26 @@ class CartTotals implements CartTotalsInterface
     {
         return array_values($this->promotionsImpact);
     }
+
+    public function isPromotionDiff():bool
+    {
+       foreach ( $this->getPromotionsImpact() as $item ) {
+            if (count( $item->getAddedPromos())>0 || count( $item->getRemovedPromos())>0) {
+                return true;
+            }
+       }
+       return false;
+    }
+    public function isItemsDiff():bool
+    {
+        foreach ( $this->getPromotionsImpact() as $item ) {
+            if (count( $item->getCartItemsDiff())>0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     /**
      * @return list<CartItemSubTotal>
