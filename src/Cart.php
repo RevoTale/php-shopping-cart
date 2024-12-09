@@ -183,7 +183,7 @@ class Cart implements CartInterface
         $excluded = [];
         foreach ($promotions as $promoItem) {
             if (CartHelpers::getItemId($promotion) !== CartHelpers::getItemId($promoItem)) {
-                $excluded[] = $promotion;
+                $excluded[] = $promoItem;
             }
         }
         return $excluded;
@@ -200,11 +200,14 @@ class Cart implements CartInterface
         /** @noinspection ForeachInvariantsInspection */
         for ($i = 0; $i < count($promotions); $i++) {
             $promotion = $promotions[$i];
+
             $newPromotions = $promotion->reducePromotions(
                 new ModifiedCartData(items: $this->convertToModified(array_values($this->items)), promotions: $promotions, cart: $this),
                 $this->excludePromotion($promotion, $promotions)
             );
+
             $newPromotions[] = $promotion;
+
 
             $diff = CartHelpers::promoDiff($promotions, $newPromotions);
             if (count($diff) === 0) {
@@ -234,7 +237,6 @@ class Cart implements CartInterface
          * @var list<PromotionInterface> $promotions
          */
         $promotions = array_values(array_filter($this->promotions, fn(PromotionInterface $p) => $p->isEligible($this)));
-
         /**
          * @var array<string,CartPromoImpact> $promoImpact
          */
@@ -247,6 +249,7 @@ class Cart implements CartInterface
          */
         $promotionItemsImpact = [];
         $items = $this->performItemReduce($items, $promotions, $promoImpact);
+
         /**
          * @var array<string,CartItemSubTotal> $itemSubTotals
          */
@@ -254,6 +257,7 @@ class Cart implements CartInterface
         $context = new PromoCalculationsContext();
 
         $this->performItemPriceReduce(promotions: $promotions, items: $items, itemPromoImpacts: $promotionItemsImpact, itemSubTotals: $itemSubTotals, context: $context);
+
         $this->performAfterPriceReduce(
             itemSubTotals: $itemSubTotals, promotions: $promotions, promotionItemsImpact: $promotionItemsImpact, items: $items, context: $context
         );
@@ -336,7 +340,6 @@ class Cart implements CartInterface
     private function performItemPriceReduce(array $promotions, array $items, array &$itemPromoImpacts, array &$itemSubTotals, PromoCalculationsContext $context): void
 
     {
-        //TODO make something to have ability implement fixed cart discount case (when there are items cheaper, to put this price on other)
         foreach ($items as $counter) {
             $item = $counter->getItem();
 

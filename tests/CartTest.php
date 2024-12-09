@@ -197,6 +197,19 @@ final class CartTest extends TestCase
 
     }
 
+    public function testPromoHasNiceOrdering():void
+    {
+
+        $cart = $this->cart;
+        $item = $this->item;
+        $cart->addItem($item, 2);
+
+        $cart->addPromotion($this->promotionFreeProduct);
+        $cart->addItem($item, 2);
+        $cart->addPromotion($this->promotion);
+        self::assertEquals([$this->promotionFreeProduct,$this->promotion],$cart->getPromotions());
+    }
+
     public function testPromoFreeProduct(): void
     {
         $cart = $this->cart;
@@ -209,11 +222,12 @@ final class CartTest extends TestCase
         self::assertEquals((640 - 120), $cart->performTotals()->getTotal()->asInteger());
         $cart->addPromotion($this->promotion);
         $totals = $cart->performTotals();
+
         self::assertEquals([-40, -120, -12], array_map(static fn(CartItemPromoImpact $impact) => $impact->priceImpact->asInteger(), $totals->getPromotionItemsImpact()));
         self::assertEquals([[400, 360], [240, 108]], array_map(static fn(CartItemSubTotal $subTotal) => [$subTotal->subTotalBeforePromo->asInteger(), $subTotal->subTotalAfterPromo->asInteger()], $totals->getItemSubTotals()));
+        self::assertEquals((640 - 120) * 0.9, $totals->getTotal()->asInteger());
 
         self::assertEquals(['promo_10_percent', 'promo_free_product_item_2', 'promo_10_percent'], array_map(static fn(CartItemPromoImpact $impact) => $impact->promotion->getCartId(), $totals->getPromotionItemsImpact()));
-        self::assertEquals((640 - 120) * 0.9, $totals->getTotal()->asInteger());
         $fixedCartPromo = new class extends CartFixedSumDiscount {
             public function isEligible(CartInterface $cart): bool
             {
@@ -266,7 +280,7 @@ final class CartTest extends TestCase
                 return 200;
             }
 
-            public function reducePromotions(ModifiedCartData $cart, array $promotions): array
+            public function ssreducePromotions(ModifiedCartData $cart, array $promotions): array
             {
                 $promotions = parent::reducePromotions($cart, $promotions);
                 return array_values(array_filter($promotions, static fn(PromotionInterface $promotion) => $promotion->getCartId() !== 'promo_free_product_item_2'));
