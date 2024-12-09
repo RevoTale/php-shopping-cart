@@ -79,10 +79,12 @@ final readonly class CartHelpers
             if ($foundItem === null) {
                 throw new UnexpectedValueException('Item not found');
             }
-            $objDiff[] = [
-                'item' => $foundItem,
-                'diff' => $count
-            ];
+            if ($count !== 0) {
+                $objDiff[] = [
+                    'item' => $foundItem,
+                    'diff' => $count
+                ];
+            }
         }
 
         return $objDiff;

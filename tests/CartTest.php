@@ -209,7 +209,6 @@ final class CartTest extends TestCase
         self::assertEquals((640 - 120), $cart->performTotals()->getTotal()->asInteger());
         $cart->addPromotion($this->promotion);
         $totals = $cart->performTotals();
-
         self::assertEquals([-40, -120, -12], array_map(static fn(CartItemPromoImpact $impact) => $impact->priceImpact->asInteger(), $totals->getPromotionItemsImpact()));
         self::assertEquals([[400, 360], [240, 108]], array_map(static fn(CartItemSubTotal $subTotal) => [$subTotal->subTotalBeforePromo->asInteger(), $subTotal->subTotalAfterPromo->asInteger()], $totals->getItemSubTotals()));
 
@@ -287,6 +286,11 @@ final class CartTest extends TestCase
         $diff = CartHelpers::promoDiff([$this->promotion, $this->promotionFreeProduct], [$this->promotionFreeProduct]);
         self::assertEquals([[
             'diff'=>-1,
+            'item'=>$this->promotion
+        ]], $diff);
+        $diff = CartHelpers::promoDiff([$this->promotionFreeProduct],[$this->promotion, $this->promotionFreeProduct]);
+        self::assertEquals([[
+            'diff'=>1,
             'item'=>$this->promotion
         ]], $diff);
     }
