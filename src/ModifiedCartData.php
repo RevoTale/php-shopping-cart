@@ -18,7 +18,7 @@ final readonly class ModifiedCartData
     public function getItemQuantity(CartItemInterface $item): int
     {
         foreach ($this->items as $iItem) {
-            if ($this->cart->getItemId($iItem->item) === $this->cart->getItemId($item)) {
+            if (CartHelpers::isTheSameItem($iItem->item,$item)) {
                 return $iItem->quantity;
             }
         }

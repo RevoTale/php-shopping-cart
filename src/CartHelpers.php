@@ -1,16 +1,19 @@
 <?php
 
 namespace RevoTale\ShoppingCart;
+
 use UnexpectedValueException;
 
-/**
- * @internal
- */
 final readonly class CartHelpers
 {
-    public static function getItemId(CartItemInterface|PromotionInterface $item): string
+    public static function getItemKey(CartItemInterface|PromotionInterface $item): string
     {
         return $item->getCartId() . '________' . $item->getCartType();
+    }
+
+    public static function isTheSameItem(CartItemInterface|PromotionInterface $item1, CartItemInterface|PromotionInterface $item2): bool
+    {
+        return $item1->getCartId() === $item2->getCartId() && $item1->getCartType() === $item2->getCartType();
     }
 
     /**
@@ -22,10 +25,11 @@ final readonly class CartHelpers
         $result = [];
         foreach ($items as $item) {
 
-            $result[self::getItemId($item->getItem())] = $item;
+            $result[self::getItemKey($item->getItem())] = $item;
         }
         return $result;
     }
+
     /**
      * @param list<PromotionInterface> $promotions
      * @return array<string,PromotionInterface>
@@ -34,7 +38,7 @@ final readonly class CartHelpers
     {
         $result = [];
         foreach ($promotions as $item) {
-            $result[self::getItemId($item)] = $item;
+            $result[self::getItemKey($item)] = $item;
         }
         return $result;
     }
@@ -71,7 +75,7 @@ final readonly class CartHelpers
         foreach ($diff as $itemId => $count) {
             $foundItem = null;
             foreach ($items as $item) {
-                if (self::getItemId($item) === $itemId) {
+                if (self::getItemKey($item) === $itemId) {
                     $foundItem = $item;
                 }
 

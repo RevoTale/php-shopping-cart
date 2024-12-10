@@ -11,6 +11,7 @@ class CartTotals implements CartTotalsInterface
      * @param list<CartItemPromoImpact> $promotionItemsImpact
      * @param array<string,CartPromoImpact> $promotionsImpact
      * @param array<string,PromotionInterface> $promotions
+     * @param list<PromotionInterface> $notEligible
      */
     public function __construct(
         protected Cart  $cart,
@@ -19,6 +20,7 @@ class CartTotals implements CartTotalsInterface
         protected array $promotionItemsImpact = [],
         protected array $promotionsImpact = [],
         protected array $promotions = [],
+        protected array $notEligible = []
     )
     {
     }
@@ -52,7 +54,7 @@ class CartTotals implements CartTotalsInterface
 
     public function getItemQuantity(CartItemInterface $item): int
     {
-        return $this->items[CartHelpers::getItemId($item)]->quantity;
+        return $this->items[CartHelpers::getItemKey($item)]->quantity;
     }
 
     /**
@@ -97,5 +99,13 @@ class CartTotals implements CartTotalsInterface
     public function getItemSubTotals(): array
     {
         return array_values($this->itemSubTotals);
+    }
+
+    /**
+     * @return list<PromotionInterface>
+     */
+    public function getNotEligible(): array
+    {
+        return $this->notEligible;
     }
 }
