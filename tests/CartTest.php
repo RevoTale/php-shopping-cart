@@ -310,6 +310,56 @@ final class CartTest extends TestCase
         ]], $diff);
     }
 
+    public function testQtyReduce():void
+    {
+        $cart = $this->cart;
+        $cart->addItem($this->item,2);
+        $cart->removeItem($this->item,2);
+        self::assertCount(0,$cart->performTotals()->getItems());
+
+        $cart->addItem($this->item,2);
+        $cart->addPromotion(new class implements PromotionInterface
+        {
+
+            public function isEligible(CartInterface $cart): bool
+            {
+               return true;
+            }
+
+            public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal, PromoCalculationsContext $context): Decimal
+            {
+                return $subTotal;
+            }
+
+            public function reduceItems(ModifiedCartData $cart, array $itemCounters): array
+            {
+                $itemCounters[0]->quantity = 0;
+                return $itemCounters;
+            }
+
+            public function reducePromotions(ModifiedCartData $cart, array $promotions): array
+            {
+                return $promotions;
+            }
+
+            public function getCartId(): string
+            {
+                return 's';
+            }
+
+            public function getCartType(): string
+            {
+               return 'd';
+            }
+
+            public function reduceItemsSubTotal(array $items, PromoCalculationsContext $context, ModifiedCartData $data): void
+            {
+
+            }
+        });
+        self::assertCount(0,$cart->performTotals()->getItems());
+    }
+
     public function testEligible(): void
     {
         $promo1 = new class extends CartPercentageDiscount {
