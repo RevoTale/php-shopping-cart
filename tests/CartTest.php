@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use RevoTale\ShoppingCart\Cart;
 use RevoTale\ShoppingCart\CartHelpers;
 use RevoTale\ShoppingCart\CartInterface;
+use RevoTale\ShoppingCart\CartItemCounter;
 use RevoTale\ShoppingCart\CartItemInterface;
 use RevoTale\ShoppingCart\CartItemPromoImpact;
 use RevoTale\ShoppingCart\CartItemSubTotal;
@@ -312,19 +313,19 @@ final class CartTest extends TestCase
 
     public function testQtyReduce():void
     {
-        $cart = $this->cart;
+        $cart = new Cart();
         $cart->addItem($this->item,2);
         $cart->removeItem($this->item,2);
         $totals = $cart->performTotals();
         self::assertCount(0,$totals->getItems());
 
         $cart->addItem($this->item,2);
-        $cart->addPromotion(new class implements PromotionInterface
+        $promoZeroFirst = new class implements PromotionInterface
         {
 
             public function isEligible(CartInterface $cart): bool
             {
-               return true;
+                return true;
             }
 
             public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal, PromoCalculationsContext $context): Decimal
@@ -352,7 +353,53 @@ final class CartTest extends TestCase
 
             public function getCartType(): string
             {
-               return 'd';
+                return 'd';
+            }
+
+            public function reduceItemsSubTotal(array $items, PromoCalculationsContext $context, ModifiedCartData $data): void
+            {
+
+            }
+        };
+        $cart->addPromotion($promoZeroFirst);
+        self::assertCount(0,$cart->performTotals()->getItems());
+        self::assertCount(1,$cart->performTotals()->getPromotions());
+
+        $cart->addPromotion(new class($this->item) implements PromotionInterface
+        {
+            public function __construct(private readonly CartItemInterface $item)
+            {
+            }
+
+            public function isEligible(CartInterface $cart): bool
+            {
+
+                return true;
+            }
+
+            public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal, PromoCalculationsContext $context): Decimal
+            {
+                return $subTotal;
+            }
+
+            public function reduceItems(ModifiedCartData $cart, array $itemCounters): array
+            {
+                return [...$itemCounters,new CartItemCounter($this->item,2),new CartItemCounter($this->item,5)];
+            }
+
+            public function reducePromotions(ModifiedCartData $cart, array $promotions): array
+            {
+                return $promotions;
+            }
+
+            public function getCartId(): string
+            {
+                return 's2';
+            }
+
+            public function getCartType(): string
+            {
+                return 'd';
             }
 
             public function reduceItemsSubTotal(array $items, PromoCalculationsContext $context, ModifiedCartData $data): void
@@ -360,7 +407,12 @@ final class CartTest extends TestCase
 
             }
         });
-        self::assertCount(0,$cart->performTotals()->getItems());
+        $totals = $cart->performTotals();
+        self::assertCount(2,$totals->getPromotions());
+        self::assertCount(1,$totals->getItems());
+        self::assertEquals(7,$totals->getItemQuantity($totals->getItems()[0]));
+
+
     }
 
     public function testEligible(): void
