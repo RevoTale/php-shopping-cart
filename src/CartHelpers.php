@@ -22,10 +22,20 @@ final readonly class CartHelpers
      */
     public static function makeKeyedItems(array $items): array
     {
+        /**
+         * @var array<string,CartItemCounter> $result
+         */
         $result = [];
         foreach ($items as $item) {
 
-            $result[self::getItemKey($item->getItem())] = $item;
+            $key = self::getItemKey($item->getItem());
+            if (isset($result[$key])) {
+                $result[$key]->quantity += $item->quantity;
+            } else {
+                $result[$key] = new CartItemCounter(
+                    item: $item->item,quantity: $item->quantity
+                );
+            }
         }
         return $result;
     }

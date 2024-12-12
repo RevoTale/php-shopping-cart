@@ -217,7 +217,7 @@ class Cart implements CartInterface
         /** @noinspection ForeachInvariantsInspection */
         for ($i = 0; $i < count($promotions); $i++) {
             $promotion = $promotions[$i];
-
+var_dump('dd');
             $newPromotions = $promotion->reducePromotions(
                 new ModifiedCartData(items: $this->convertToModified(array_values($this->items)), promotions: $promotions, cart: $this),
                 $this->excludePromotion($promotion, $promotions)
@@ -263,6 +263,7 @@ class Cart implements CartInterface
          * @var list<CartItemPromoImpact> $promotionItemsImpact
          */
         $promotionItemsImpact = [];
+
         $items = $this->performItemReduce($items, $promotions, $promoImpact);
 
         /**
@@ -272,14 +273,13 @@ class Cart implements CartInterface
         $context = new PromoCalculationsContext();
 
         $this->performItemPriceReduce(promotions: $promotions, items: $items, itemPromoImpacts: $promotionItemsImpact, itemSubTotals: $itemSubTotals, context: $context);
-
         $this->performAfterPriceReduce(
             itemSubTotals: $itemSubTotals, promotions: $promotions, promotionItemsImpact: $promotionItemsImpact, items: $items, context: $context
         );
 
-
         $keyed = CartHelpers::makeKeyedItems($items);
         $keyedPromo = CartHelpers::makeKeyedPromo($promotions);
+
         return new CartTotals(
             cart: $this,
             items: $keyed,
@@ -415,9 +415,9 @@ class Cart implements CartInterface
             $modifiedCart = new ModifiedCartData(items: $this->convertToModified($items), promotions: $promotions, cart: $this);
             $newItems = array_values(array_filter($promotion->reduceItems($modifiedCart, $items), static fn(CartItemCounter $counter)=>$counter->quantity>0));
             $diff = $this->itemsDiff($items, $newItems);
-            $items = $newItems;
+            $items = array_values(CartHelpers::makeKeyedItems($newItems));
             $itemId = CartHelpers::getItemKey($promotion);
-
+var_dump('ss');
             if (count($diff) !== 0) {
                 $i = 0;
                 $promoImpact[CartHelpers::getItemKey($promotion)] = new CartPromoImpact(
