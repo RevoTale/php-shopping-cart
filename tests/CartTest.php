@@ -389,7 +389,7 @@ final class CartTest extends TestCase
 
             public function reduceItems(ModifiedCartData $cart, array $itemCounters): array
             {
-                return [...$itemCounters,new CartItemCounter($this->item,2),new CartItemCounter($this->item,3)];
+                return [...$itemCounters,new CartItemCounter($this->item,2),new CartItemCounter($this->item,5)];
             }
 
             public function reducePromotions(ModifiedCartData $cart, array $promotions): array
@@ -412,13 +412,10 @@ final class CartTest extends TestCase
 
             }
         });
-        /**
-         * $totals = $cart->performTotals();
-         * self::assertCount(2,$totals->getPromotions());
-         * self::assertCount(1,$totals->getItems());
-         * self::assertEquals(7,$totals->getItemQuantity($totals->getItems()[0]));
-         */
-
+         $totals = $cart->performTotals();
+          self::assertCount(2,$totals->getPromotions());
+          self::assertCount(1,$totals->getItems());
+          self::assertEquals(7,$totals->getItemQuantity($totals->getItems()[0]));
 
     }
 

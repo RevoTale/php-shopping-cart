@@ -217,7 +217,6 @@ class Cart implements CartInterface
         /** @noinspection ForeachInvariantsInspection */
         for ($i = 0; $i < count($promotions); $i++) {
             $promotion = $promotions[$i];
-var_dump('dd');
             $newPromotions = $promotion->reducePromotions(
                 new ModifiedCartData(items: $this->convertToModified(array_values($this->items)), promotions: $promotions, cart: $this),
                 $this->excludePromotion($promotion, $promotions)
@@ -417,9 +416,7 @@ var_dump('dd');
             $diff = $this->itemsDiff($items, $newItems);
             $items = array_values(CartHelpers::makeKeyedItems($newItems));
             $itemId = CartHelpers::getItemKey($promotion);
-var_dump('ss');
             if (count($diff) !== 0) {
-                $i = 0;
                 $promoImpact[CartHelpers::getItemKey($promotion)] = new CartPromoImpact(
                     promotion: $promotion,
                     cartItemsDiff: $diff,
