@@ -315,7 +315,8 @@ final class CartTest extends TestCase
         $cart = $this->cart;
         $cart->addItem($this->item,2);
         $cart->removeItem($this->item,2);
-        self::assertCount(0,$cart->performTotals()->getItems());
+        $totals = $cart->performTotals();
+        self::assertCount(0,$totals->getItems());
 
         $cart->addItem($this->item,2);
         $cart->addPromotion(new class implements PromotionInterface
@@ -333,7 +334,9 @@ final class CartTest extends TestCase
 
             public function reduceItems(ModifiedCartData $cart, array $itemCounters): array
             {
-                $itemCounters[0]->quantity = 0;
+                if (count($itemCounters)>0) {
+                    $itemCounters[0]->quantity = 0;
+                }
                 return $itemCounters;
             }
 
