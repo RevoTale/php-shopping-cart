@@ -107,7 +107,7 @@ class Decimal
 
         if (preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture) !== false) {
             if (null === $scale) {
-                $scale = ('-' === ($capture['sign']??''))
+                $scale = ('-' === ($capture['sign']))
                     ? $capture['exp'] + strlen($capture['dec'])
                     : self::DEFAULT_SCALE;
             }
