@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace RevoTale\ShoppingCart\PromotionTemplates;
 
 use RevoTale\ShoppingCart\CartInterface;
@@ -29,7 +31,6 @@ abstract class CartFixedSumDiscount implements PromotionInterface
 
     /**
      * @param list<CartItemSubTotalReducer> $items
-     * @return Decimal
      */
     private function getDiscountMultiplier(array $items): Decimal
     {
@@ -37,8 +38,10 @@ abstract class CartFixedSumDiscount implements PromotionInterface
         foreach ($items as $item) {
             $total = $total->add($item->subTotal,4);
         }
+
         return Decimal::fromInteger(1)->sub(Decimal::fromFloat($this->getDiscountAmount(),4)->div($total,10));
     }
+
     public function reduceItemsSubTotal(array $items, PromoCalculationsContext $context,ModifiedCartData $data): void
     {
 

@@ -12,6 +12,7 @@ interface PromotionInterface
      * If this promotion is eligible.
      */
     public function isEligible(CartInterface $cart): bool;
+
     /**
      * Apply promotion. Called only if promotion is eligible.
      * @param PromoCalculationsContext $context Can be used to contain variables for inner algorithm for promotions. Context is being reset before calculation of cart total starts.
@@ -25,12 +26,13 @@ interface PromotionInterface
     public function reduceItems(ModifiedCartData $cart,array $itemCounters): array;
 
     /**
-     * @param ModifiedCartData $cart
      * @param list<PromotionInterface> $promotions
      * @return list<PromotionInterface>
      */
     public function reducePromotions(ModifiedCartData $cart,array $promotions): array;
+
     public function getCartId():string;
+
     public function getCartType(): string;
 
     /**

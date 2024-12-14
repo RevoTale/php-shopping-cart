@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace RevoTale\ShoppingCart;
 
 final class CartPromoImpact
@@ -36,8 +38,10 @@ final class CartPromoImpact
                 $result[] = $promotionDiff['item'];
             }
         }
+
         return $result;
     }
+
     /**
      * @return list<PromotionInterface>
      */
@@ -49,6 +53,7 @@ final class CartPromoImpact
                 $result[] = $promotionDiff['item'];
             }
         }
+
         return $result;
     }
 }

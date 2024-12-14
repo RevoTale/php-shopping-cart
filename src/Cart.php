@@ -12,6 +12,7 @@ class Cart implements CartInterface
      * @var array<string,CartItemCounter> $items
      */
     protected array $items = [];
+
     /**
      * @var array<string,PromotionInterface> $promotions
      */
@@ -24,6 +25,7 @@ class Cart implements CartInterface
             $this->items[$id]->quantity += $quantity;
             return;
         }
+
         $this->items[$id] = new CartItemCounter(item: $item, quantity: $quantity);
     }
 
@@ -40,6 +42,7 @@ class Cart implements CartInterface
             return null;
 
         }
+
         return $result->quantity;
     }
 
@@ -55,10 +58,12 @@ class Cart implements CartInterface
         if (!isset($this->items[$id])) {
             return;
         }
+
         if ($qty === null) {
             unset($this->items[$id]);
             return;
         }
+
         $this->items[$id]->quantity -= $qty;
         if ($this->items[$id]->quantity <= 0) {
             unset($this->items[$id]);
@@ -84,7 +89,7 @@ class Cart implements CartInterface
      */
     public function getItems(): array
     {
-        return array_values(array_map(static fn(CartItemCounter $item) => $item->item, ($this->items)));
+        return array_values(array_map(static fn(CartItemCounter $item): \RevoTale\ShoppingCart\CartItemInterface => $item->item, ($this->items)));
     }
 
     /**
@@ -131,13 +136,15 @@ class Cart implements CartInterface
         foreach ($keyedA as $item) {
             $items[] = $item;
         }
+
         foreach ($keyedB as $item) {
             $items[] = $item;
         }
-        $keyedACount = array_map(static function (CartItemCounter $item) {
+
+        $keyedACount = array_map(static function (CartItemCounter $item): int {
             return $item->quantity;
         }, $keyedA);
-        $keyedBCount = array_map(static function (CartItemCounter $item) {
+        $keyedBCount = array_map(static function (CartItemCounter $item): int {
             return $item->quantity;
         }, $keyedB);
 
@@ -146,9 +153,11 @@ class Cart implements CartInterface
             if (!isset( $diff[$itemId] ) ) {
                 $diff[$itemId] = 0;
             }
+
             $diff[$itemId] -= $count;
 
         }
+
         $objDiff = [];
         foreach ($diff as $itemId => $count) {
             $foundItem = null;
@@ -158,12 +167,15 @@ class Cart implements CartInterface
                 }
 
             }
+
             if ($foundItem === null) {
                 throw new UnexpectedValueException('Item not found');
             }
+
             if ($count === 0) {
                 continue;
             }
+
             $objDiff[] = new CartItemDifference(item: $foundItem->item, difference: $count);
         }
 
@@ -189,6 +201,7 @@ class Cart implements CartInterface
                 $excluded[] = $promoItem;
             }
         }
+
         return $excluded;
     }
 
@@ -202,20 +215,18 @@ class Cart implements CartInterface
     private function performPromotionReduce(array $promotions, array &$promoImpact,array &$notEligible): array
     {
 
-        $newPromotions = array_values(array_filter($promotions, fn(PromotionInterface $p) => $p->isEligible($this)));
+        $newPromotions = array_values(array_filter($promotions, fn(PromotionInterface $p): bool => $p->isEligible($this)));
         $diff = CartHelpers::promoDiff($promotions, $newPromotions);
-        if (count($diff) !== 0) {
-            foreach ($diff as $item) {
-                if ($item['diff'] !== 0) {
-                    $notEligible[] = $item['item'];
-                }
+        foreach ($diff as $item) {
+            if ($item['diff'] !== 0) {
+                $notEligible[] = $item['item'];
             }
         }
 
         $promotions = $newPromotions;
         /** @noinspection SlowArrayOperationsInLoopInspection */
         /** @noinspection ForeachInvariantsInspection */
-        for ($i = 0; $i < count($promotions); $i++) {
+        for ($i = 0; $i < count($promotions); ++$i) {
             $promotion = $promotions[$i];
             $newPromotions = $promotion->reducePromotions(
                 new ModifiedCartData(items: $this->convertToModified(array_values($this->items)), promotions: $promotions, cart: $this),
@@ -226,20 +237,23 @@ class Cart implements CartInterface
 
 
             $diff = CartHelpers::promoDiff($promotions, $newPromotions);
-            if (count($diff) === 0) {
+            if ($diff === []) {
                 continue;
             }
+
             foreach ($diff as $item) {
                 if ($item['diff'] === 0) {
                     continue 2;
                 }
             }
+
             $promoImpact[CartHelpers::getItemKey($promotion)] = new CartPromoImpact(
                 promotion: $promotion, cartItemsDiff: [], promotionsDiff: $diff
             );
             $i = 0;
             $promotions = $newPromotions;
         }
+
         return $promotions;
     }
 
@@ -298,8 +312,6 @@ class Cart implements CartInterface
      * @param list<CartItemCounter> $items
      * @param list<CartItemPromoImpact> $promotionItemsImpact
      * @param array<string,CartItemSubTotal> $itemSubTotals
-     * @param PromoCalculationsContext $context
-     * @return void
      */
     private function performAfterPriceReduce(array &$itemSubTotals, array $promotions, array &$promotionItemsImpact, array $items, PromoCalculationsContext $context): void
     {
@@ -341,7 +353,7 @@ class Cart implements CartInterface
     private function convertToModified(array $items): array
     {
         return array_map(
-            static fn(CartItemCounter $item) => new ModifiedCartItemData(
+            static fn(CartItemCounter $item): \RevoTale\ShoppingCart\ModifiedCartItemData => new ModifiedCartItemData(
                 item: $item->item,
                 quantity: $item->quantity
             ), $items
@@ -365,6 +377,7 @@ class Cart implements CartInterface
             if ($quantity === null || $quantity<=0) {
                 continue;
             }
+
             $before = Decimal::fromFloat($item->getUnitPrice() * $quantity,4);
 
             $subTotal = $before;
@@ -391,6 +404,7 @@ class Cart implements CartInterface
                     );
                 }
             }
+
             $itemSubTotals[$itemId] = new CartItemSubTotal(
                 item: $item,
                 quantity: $quantity,
@@ -414,14 +428,14 @@ class Cart implements CartInterface
     {
         /** @noinspection SlowArrayOperationsInLoopInspection */
         /** @noinspection ForeachInvariantsInspection */
-        for ($i = 0; $i < count($promotions); $i++) {
+        for ($i = 0; $i < count($promotions); ++$i) {
             $promotion = $promotions[$i];
             $modifiedCart = new ModifiedCartData(items: $this->convertToModified($items), promotions: $promotions, cart: $this);
             $newItems = CartHelpers::filterOutOfStockItemCounter($promotion->reduceItems($modifiedCart, $items));
             $diff = $this->itemsDiff($items, $newItems);
             $items = array_values(CartHelpers::makeKeyedItems($newItems));
             $itemId = CartHelpers::getItemKey($promotion);
-            if (count($diff) !== 0) {
+            if ($diff !== []) {
                 $promoImpact[$itemId] = new CartPromoImpact(
                     promotion: $promotion,
                     cartItemsDiff: $diff,
@@ -429,6 +443,7 @@ class Cart implements CartInterface
                 );
             }
         }
+
         return $items;
     }
 

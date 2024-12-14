@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace RevoTale\ShoppingCart;
 
 use UnexpectedValueException;
@@ -37,6 +39,7 @@ final readonly class CartHelpers
                 );
             }
         }
+
         return $result;
     }
 
@@ -50,6 +53,7 @@ final readonly class CartHelpers
         foreach ($promotions as $item) {
             $result[self::getItemKey($item)] = $item;
         }
+
         return $result;
     }
 
@@ -66,13 +70,15 @@ final readonly class CartHelpers
         foreach ($keyedA as $item) {
             $items[] = $item;
         }
+
         foreach ($keyedB as $item) {
             $items[] = $item;
         }
-        $keyedACount = array_map(static function () {
+
+        $keyedACount = array_map(static function (): int {
             return 1;
         }, $keyedA);
-        $keyedBCount = array_map(static function () {
+        $keyedBCount = array_map(static function (): int {
             return 1;
         }, $keyedB);
 
@@ -81,6 +87,7 @@ final readonly class CartHelpers
             $diff[$itemId] = ($diff[$itemId] ?? 0) - $count;
 
         }
+
         $objDiff = [];
         foreach ($diff as $itemId => $count) {
             $foundItem = null;
@@ -90,9 +97,11 @@ final readonly class CartHelpers
                 }
 
             }
+
             if ($foundItem === null) {
                 throw new UnexpectedValueException('Item not found');
             }
+
             if ($count !== 0) {
                 $objDiff[] = [
                     'item' => $foundItem,
@@ -110,7 +119,7 @@ final readonly class CartHelpers
      */
     public static function filterOutOfStockItemCounter(array $items):array
     {
-        return array_values(array_filter($items, static fn(CartItemCounter $counter)=>$counter->quantity>0));
+        return array_values(array_filter($items, static fn(CartItemCounter $counter): bool=>$counter->quantity>0));
     }
 
     /**
@@ -119,6 +128,6 @@ final readonly class CartHelpers
      */
     public static function cloneItemCounters(array $items):array
     {
-       return (array_map(static fn(CartItemCounter $item) => clone $item,$items));
+       return (array_map(static fn(CartItemCounter $item): \RevoTale\ShoppingCart\CartItemCounter => clone $item,$items));
     }
 }

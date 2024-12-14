@@ -30,7 +30,7 @@ class CartTotals implements CartTotalsInterface
      */
     public function getItems(): array
     {
-        return array_map(static fn(CartItemCounter $c) => $c->item, array_values($this->items));
+        return array_map(static fn(CartItemCounter $c): \RevoTale\ShoppingCart\CartItemInterface => $c->item, array_values($this->items));
     }
 
     public function getTotal(): Decimal
@@ -58,6 +58,7 @@ class CartTotals implements CartTotalsInterface
         if (isset($this->items[$key])) {
             return $this->items[$key]->quantity;
         }
+
         return null;
     }
 
@@ -84,8 +85,10 @@ class CartTotals implements CartTotalsInterface
                 return true;
             }
        }
+
        return false;
     }
+
     public function isItemsDiff():bool
     {
         foreach ( $this->getPromotionsImpact() as $item ) {
@@ -93,6 +96,7 @@ class CartTotals implements CartTotalsInterface
                 return true;
             }
         }
+
         return false;
     }
 

@@ -102,10 +102,11 @@ class Decimal
          */
         $strValue = (string)$fltValue;
         $hasPoint = (str_contains($strValue, '.'));
-
-        if (preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture) !== false) {
+$result = preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture);
+        if ($result !== false && $result !== 0 ) {
             if (null === $scale) {
-                $scale = ('-' === ($capture['sign']??''))
+                $sign = $capture['sign'];
+                $scale = ('-' === ($sign))
                     ? $capture['exp'] + strlen($capture['dec'])
                     : self::DEFAULT_SCALE;
             }
@@ -146,7 +147,7 @@ class Decimal
             assert(is_numeric($mantisa));
             [$min_scale, $value] = self::fromExpNotationString(
                 $scale,
-                $captures['sign']??'',
+                $captures['sign'],
                 $mantisa,
                 strlen($captures['mantissa']) - 1,
                 $captures['expSign'],

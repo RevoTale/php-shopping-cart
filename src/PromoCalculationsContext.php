@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace RevoTale\ShoppingCart;
 
 final class PromoCalculationsContext
@@ -8,10 +10,6 @@ final class PromoCalculationsContext
      * @var array<string,array<string,mixed>>
      */
     private array $data = [];
-
-    public function __construct()
-    {
-    }
 
     /**
      * @return array<string,array<string,mixed>>
@@ -27,6 +25,7 @@ final class PromoCalculationsContext
         if (!isset($this->data[$promoKey])) {
             $this->data[$promoKey] = [];
         }
+
         $this->data[$promoKey][$key] = $data;
     }
 
