@@ -103,4 +103,22 @@ final readonly class CartHelpers
 
         return $objDiff;
     }
+
+    /**
+     * @param list<CartItemCounter> $items
+     * @return list<CartItemCounter>
+     */
+    public static function filterOutOfStockItemCounter(array $items):array
+    {
+        return array_values(array_filter($items, static fn(CartItemCounter $counter)=>$counter->quantity>0));
+    }
+
+    /**
+     * @param list<CartItemCounter> $items
+     * @return list<CartItemCounter>
+     */
+    public static function cloneItemCounters(array $items):array
+    {
+       return (array_map(static fn(CartItemCounter $item) => clone $item,$items));
+    }
 }

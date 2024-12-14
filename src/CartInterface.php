@@ -3,9 +3,7 @@ declare(strict_types=1);
 
 namespace RevoTale\ShoppingCart;
 
-use PhpParser\Node\Stmt\TraitUseAdaptation\Precedence;
-
-interface CartInterface
+interface CartInterface extends ContainItemsInterface
 {
     public function addItem(CartItemInterface $item):void;
     public function removeItem(CartItemInterface $item):void;
@@ -14,16 +12,11 @@ interface CartInterface
     public function removePromotion(PromotionInterface $promotion):void;
 
     /**
-     * @return list<CartItemInterface>
-     */
-    public function getItems():array;
-    /**
      * @return list<PromotionInterface>
      */
     public function getPromotions():array;
 
     public function clearItems():void;
 
-    public function getItemQuantity(CartItemInterface $item): int;
 
 }

@@ -2,7 +2,7 @@
 
 namespace RevoTale\ShoppingCart;
 
-final readonly class ModifiedCartData
+final readonly class ModifiedCartData implements ContainItemsInterface
 {
     /**
      * @param list<ModifiedCartItemData> $items
@@ -15,14 +15,14 @@ final readonly class ModifiedCartData
     )
     {
     }
-    public function getItemQuantity(CartItemInterface $item): int
+    public function getItemQuantity(CartItemInterface $item): ?int
     {
         foreach ($this->items as $iItem) {
             if (CartHelpers::isTheSameItem($iItem->item,$item)) {
                 return $iItem->quantity;
             }
         }
-        return 0;
+        return null;
     }
     public function getTotalQuantity(): int
     {
@@ -31,5 +31,14 @@ final readonly class ModifiedCartData
             $total += $item->quantity;
         }
         return $total;
+    }
+
+    public function getItems(): array
+    {
+        $result = [];
+        foreach ($this->items as $item) {
+            $result[] = $item->item;
+        }
+        return $result;
     }
 }

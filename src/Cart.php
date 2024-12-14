@@ -33,11 +33,11 @@ class Cart implements CartInterface
         return $this->items[CartHelpers::getItemKey($item)] ?? null;
     }
 
-    public function getItemQuantity(CartItemInterface $item): int
+    public function getItemQuantity(CartItemInterface $item): ?int
     {
         $result = $this->findItem($item);
         if (null === $result) {
-            return 0;
+            return null;
 
         }
         return $result->quantity;
@@ -243,10 +243,12 @@ class Cart implements CartInterface
         return $promotions;
     }
 
+
+
     public function performTotals(): CartTotals
     {
 
-        $items = array_values(array_map(static fn(CartItemCounter $item) => clone $item, $this->items));
+        $items = CartHelpers::cloneItemCounters(array_values($this->items));
         /**
          * @var list<PromotionInterface> $notEligible
          */
@@ -360,6 +362,9 @@ class Cart implements CartInterface
 
             $itemId = CartHelpers::getItemKey($item);
             $quantity = $this->getItemQuantity($item);
+            if ($quantity === null || $quantity<=0) {
+                continue;
+            }
             $before = Decimal::fromFloat($item->getUnitPrice() * $quantity,4);
 
             $subTotal = $before;
@@ -412,12 +417,12 @@ class Cart implements CartInterface
         for ($i = 0; $i < count($promotions); $i++) {
             $promotion = $promotions[$i];
             $modifiedCart = new ModifiedCartData(items: $this->convertToModified($items), promotions: $promotions, cart: $this);
-            $newItems = array_values(array_filter($promotion->reduceItems($modifiedCart, $items), static fn(CartItemCounter $counter)=>$counter->quantity>0));
+            $newItems = CartHelpers::filterOutOfStockItemCounter($promotion->reduceItems($modifiedCart, $items));
             $diff = $this->itemsDiff($items, $newItems);
             $items = array_values(CartHelpers::makeKeyedItems($newItems));
             $itemId = CartHelpers::getItemKey($promotion);
             if (count($diff) !== 0) {
-                $promoImpact[CartHelpers::getItemKey($promotion)] = new CartPromoImpact(
+                $promoImpact[$itemId] = new CartPromoImpact(
                     promotion: $promotion,
                     cartItemsDiff: $diff,
                     promotionsDiff: isset($promoImpact[$itemId]) ? $promoImpact[$itemId]->promotionsDiff : []
