@@ -10,7 +10,7 @@ interface CartTotalsInterface
      */
     public function getItems():array;
 
-    public function getItemQuantity(CartItemInterface $item):int;
+    public function getItemQuantity(CartItemInterface $item):?int;
     /**
      * @return list<PromotionInterface>
      */

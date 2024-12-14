@@ -52,9 +52,13 @@ class CartTotals implements CartTotalsInterface
     }
 
 
-    public function getItemQuantity(CartItemInterface $item): int
+    public function getItemQuantity(CartItemInterface $item): ?int
     {
-        return $this->items[CartHelpers::getItemKey($item)]->quantity;
+        $key = CartHelpers::getItemKey($item);
+        if (isset($this->items[$key])) {
+            return $this->items[$key]->quantity;
+        }
+        return null;
     }
 
     /**

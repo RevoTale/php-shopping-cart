@@ -181,6 +181,22 @@ final class CartTest extends TestCase
         self::assertEquals(240, $cart->performTotals()->getTotal()->asInteger());
 
 
+        $cart->removeItem($this->item,10);
+        $totals = $cart->performTotals();
+        self::assertEquals(null,$totals->getItemQuantity($this->item));
+        $cart->addItem($this->item);
+        $totals = $cart->performTotals();
+
+        self::assertEquals(1, $totals->getItemQuantity($this->item));
+        $cart->removeItem($this->item,1);
+        $totals = $cart->performTotals();
+
+        self::assertEquals(null, $totals->getItemQuantity($this->item));
+        $cart->removeItem($this->item);
+        $totals = $cart->performTotals();
+
+        self::assertEquals(null, $totals->getItemQuantity($this->item));
+
     }
 
     public function testPromo(): void
@@ -416,6 +432,7 @@ final class CartTest extends TestCase
           self::assertCount(2,$totals->getPromotions());
           self::assertCount(1,$totals->getItems());
           self::assertEquals(7,$totals->getItemQuantity($totals->getItems()[0]));
+
 
     }
 
