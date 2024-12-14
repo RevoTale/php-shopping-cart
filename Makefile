@@ -13,7 +13,10 @@ phpunit:
 	docker run --rm --interactive --tty \
 	  	--volume $(PWD):/app \
 		"revotale/php-shopping-cart:latest" phpunit
-
+rector_fix:
+	docker run --rm --interactive --tty \
+	  	--volume $(PWD):/app \
+		"revotale/php-shopping-cart:latest" vendor/bin/rector process
 phpstan:
 	docker run --rm --interactive --tty \
 	  	--volume $(PWD):/app \
