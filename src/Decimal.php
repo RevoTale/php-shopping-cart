@@ -105,9 +105,9 @@ class Decimal
         $strValue = (string)$fltValue;
         $hasPoint = (str_contains($strValue, '.'));
 
-        if (preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture)) {
+        if (preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture) !== false) {
             if (null === $scale) {
-                $scale = ('-' === $capture['sign'])
+                $scale = ('-' === ($capture['sign']??''))
                     ? $capture['exp'] + strlen($capture['dec'])
                     : self::DEFAULT_SCALE;
             }
@@ -237,7 +237,7 @@ class Decimal
         self::paramsValidation($b, $scale);
 
         if ($b->isZero()) {
-            return DecimalConstants::Zero();
+            return DecimalConstants::zero();
         }
 
         return self::fromString(
@@ -265,7 +265,7 @@ class Decimal
         }
 
         if ($this->isZero()) {
-            return DecimalConstants::Zero();
+            return DecimalConstants::zero();
         }
 
         if (null !== $scale) {
@@ -308,7 +308,7 @@ class Decimal
         }
 
         if ($this->isZero()) {
-            return DecimalConstants::Zero();
+            return DecimalConstants::zero();
         }
 
         $sqrt_scale = ($scale ?? $this->scale);
@@ -337,11 +337,11 @@ class Decimal
         }
 
         if ($b->isZero()) {
-            return DecimalConstants::One();
+            return DecimalConstants::one();
         }
 
         if ($b->isNegative()) {
-            return DecimalConstants::One()->div(
+            return DecimalConstants::one()->div(
                 $this->pow($b->additiveInverse(), max($scale, self::DEFAULT_SCALE)),
                 max($scale, self::DEFAULT_SCALE)
             );
@@ -666,7 +666,7 @@ assert(is_numeric($value));
     public function sin(int $scale = null): Decimal
     {
         // First normalise the number in the [0, 2PI] domain
-        $x = $this->mod(DecimalConstants::PI()->mul(self::fromString("2")));
+        $x = $this->mod(DecimalConstants::pi()->mul(self::fromString("2")));
 
         // PI has only 32 significant numbers
         $scale = $scale ?? 32;
@@ -709,7 +709,7 @@ assert(is_numeric($value));
     public function cos(int $scale = null): Decimal
     {
         // First normalise the number in the [0, 2PI] domain
-        $x = $this->mod(DecimalConstants::PI()->mul(self::fromString("2")));
+        $x = $this->mod(DecimalConstants::pi()->mul(self::fromString("2")));
 
         // PI has only 32 significant numbers
         $scale = $scale ?? 32;
@@ -895,7 +895,7 @@ assert(is_numeric($value));
      */
     public function arccsc(int $scale = null): Decimal
     {
-        if ($this->comp(DecimalConstants::one(), $scale + 2) === -1 && $this->comp(DecimalConstants::negativeOne(), $scale + 2) === 1) {
+        if ($this->comp(DecimalConstants::one(), ($scale??0) + 2) === -1 && $this->comp(DecimalConstants::negativeOne(), ($scale??0) + 2) === 1) {
             throw new DomainException(
                 "The arccosecant of this number is undefined."
             );
@@ -945,10 +945,10 @@ assert(is_numeric($value));
     private static function factorialSerie(Decimal $x, Decimal $firstTerm, callable $generalTerm, int $scale): Decimal
     {
         $approx = $firstTerm;
-        $change = DecimalConstants::One();
+        $change = DecimalConstants::one();
 
-        $faculty = DecimalConstants::One();    // Calculates the faculty under the sign
-        $xPowerN = DecimalConstants::One();    // Calculates x^n
+        $faculty = DecimalConstants::one();    // Calculates the faculty under the sign
+        $xPowerN = DecimalConstants::one();    // Calculates x^n
 
         for ($i = 1; !$change->floor($scale + 1)->isZero(); $i++) {
             // update x^n and n! for this walkthrough
@@ -974,10 +974,10 @@ assert(is_numeric($value));
     private static function powerSerie(Decimal $x, Decimal $firstTerm, int $scale): Decimal
     {
         $approx = $firstTerm;
-        $change = DecimalConstants::One();
+        $change = DecimalConstants::one();
 
-        $xPowerN = DecimalConstants::One();     // Calculates x^n
-        $factorN = DecimalConstants::One();      // Calculates a_n
+        $xPowerN = DecimalConstants::one();     // Calculates x^n
+        $factorN = DecimalConstants::one();      // Calculates a_n
 
         $numerator = DecimalConstants::one();
         $denominator = DecimalConstants::one();
@@ -1018,10 +1018,10 @@ assert(is_numeric($value));
     private static function simplePowerSerie(Decimal $x, Decimal $firstTerm, int $scale): Decimal
     {
         $approx = $firstTerm;
-        $change = DecimalConstants::One();
+        $change = DecimalConstants::one();
 
-        $xPowerN = DecimalConstants::One();     // Calculates x^n
-        $sign = DecimalConstants::One();      // Calculates a_n
+        $xPowerN = DecimalConstants::one();     // Calculates x^n
+        $sign = DecimalConstants::one();      // Calculates a_n
 
         for ($i = 1; !$change->floor($scale + 2)->isZero(); $i++) {
             $xPowerN = $xPowerN->mul($x);
@@ -1343,7 +1343,7 @@ assert(is_numeric($value));
     private static function countSignificativeDigits(Decimal $val, Decimal $abs): int
     {
         return strlen($val->value) - (
-            ($abs->comp(DecimalConstants::One()) === -1) ? 2 : max($val->scale, 1)
+            ($abs->comp(DecimalConstants::one()) === -1) ? 2 : max($val->scale, 1)
             ) - ($val->isNegative() ? 1 : 0);
     }
 }
