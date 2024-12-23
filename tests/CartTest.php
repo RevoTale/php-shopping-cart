@@ -186,14 +186,14 @@ final class CartTest extends TestCase
         self::assertEquals(240, $cart->performTotals()->getTotal()->asInteger());
 
 
-        $cart->removeItem($this->item,10);
+        $cart->removeItem($this->item, 10);
         $totals = $cart->performTotals();
-        self::assertEquals(null,$totals->getItemQuantity($this->item));
+        self::assertEquals(null, $totals->getItemQuantity($this->item));
         $cart->addItem($this->item);
         $totals = $cart->performTotals();
 
         self::assertEquals(1, $totals->getItemQuantity($this->item));
-        $cart->removeItem($this->item,1);
+        $cart->removeItem($this->item, 1);
         $totals = $cart->performTotals();
 
         self::assertEquals(null, $totals->getItemQuantity($this->item));
@@ -331,25 +331,59 @@ final class CartTest extends TestCase
             'diff' => 1,
             'item' => $this->promotion
         ]], $diff);
-        $keys = CartHelpers::makeKeyedItems([new CartItemCounter($this->item,quantity: 2),new CartItemCounter($this->item,quantity: 5),new CartItemCounter($this->item2,2)]);
-        self::assertCount(2,$keys);
+        $keys = CartHelpers::makeKeyedItems([new CartItemCounter($this->item, quantity: 2), new CartItemCounter($this->item, quantity: 5), new CartItemCounter($this->item2, 2)]);
+        self::assertCount(2, $keys);
         self::assertEquals(7, $keys['item_1________product']->quantity);
         self::assertEquals(2, $keys['item_2________product']->quantity);
 
     }
 
-    public function testQtyReduce():void
+    public function testTotals(): void
+    {
+        $cart = $this->cart;
+        $item = $this->item;
+        $cart->addItem($item, 2);
+        $fixedCartPromo = new class extends CartFixedSumDiscount {
+            public function isEligible(CartInterface $cart): bool
+            {
+                return true;
+            }
+
+            public function getCartId(): string
+            {
+                return 'negative_promo';
+            }
+
+            public function getCartType(): string
+            {
+                return 'discount';
+            }
+
+            public function getDiscountAmount(): float
+            {
+                return 1000000;
+            }
+        };
+        $cart->addPromotion($fixedCartPromo);
+        $totals = $cart->performTotals();
+        self::assertGreaterThanOrEqual(0, $totals->getTotal()->asInteger());
+        self::assertGreaterThanOrEqual(0, $totals
+            ->getItemSubTotals()[0]
+            ->subTotalAfterPromo->asInteger());
+
+    }
+
+    public function testQtyReduce(): void
     {
         $cart = new Cart();
-        $cart->addItem($this->item,2);
-        $cart->removeItem($this->item,2);
+        $cart->addItem($this->item, 2);
+        $cart->removeItem($this->item, 2);
 
         $totals = $cart->performTotals();
-        self::assertCount(0,$totals->getItems());
+        self::assertCount(0, $totals->getItems());
 
-        $cart->addItem($this->item,2);
-        $promoZeroFirst = new class implements PromotionInterface
-        {
+        $cart->addItem($this->item, 2);
+        $promoZeroFirst = new class implements PromotionInterface {
 
             public function isEligible(CartInterface $cart): bool
             {
@@ -391,11 +425,10 @@ final class CartTest extends TestCase
             }
         };
         $cart->addPromotion($promoZeroFirst);
-        self::assertCount(0,$cart->performTotals()->getItems());
-        self::assertCount(1,$cart->performTotals()->getPromotions());
+        self::assertCount(0, $cart->performTotals()->getItems());
+        self::assertCount(1, $cart->performTotals()->getPromotions());
 
-        $cart->addPromotion(new class($this->item) implements PromotionInterface
-        {
+        $cart->addPromotion(new class($this->item) implements PromotionInterface {
             public function __construct(private readonly CartItemInterface $item)
             {
             }
@@ -413,7 +446,7 @@ final class CartTest extends TestCase
 
             public function reduceItems(ModifiedCartData $cart, array $itemCounters): array
             {
-                return [...$itemCounters,new CartItemCounter($this->item,2),new CartItemCounter($this->item,5)];
+                return [...$itemCounters, new CartItemCounter($this->item, 2), new CartItemCounter($this->item, 5)];
             }
 
             public function reducePromotions(ModifiedCartData $cart, array $promotions): array
@@ -436,10 +469,10 @@ final class CartTest extends TestCase
 
             }
         });
-         $totals = $cart->performTotals();
-          self::assertCount(2,$totals->getPromotions());
-          self::assertCount(1,$totals->getItems());
-          self::assertEquals(7,$totals->getItemQuantity($totals->getItems()[0]));
+        $totals = $cart->performTotals();
+        self::assertCount(2, $totals->getPromotions());
+        self::assertCount(1, $totals->getItems());
+        self::assertEquals(7, $totals->getItemQuantity($totals->getItems()[0]));
 
 
     }
@@ -510,7 +543,7 @@ final class CartTest extends TestCase
         self::assertCount(2, $totals->getPromotionItemsImpact());
         self::assertEquals([-120, -48], array_map(static fn(CartItemPromoImpact $impact): int => $impact->priceImpact->asInteger(), $totals->getPromotionItemsImpact()));
         self::assertEquals(['promo_20_percent', 'promo_10_percent'], array_map(static fn(CartItemPromoImpact $impact): string => $impact->promotion->getCartId(), $totals->getPromotionItemsImpact()));
-        self::assertEquals([],$totals->getNotEligible());
+        self::assertEquals([], $totals->getNotEligible());
 
         self::assertEquals(600 * 0.8 * 0.9, $totals->getTotal()->asInteger());
 
@@ -521,7 +554,7 @@ final class CartTest extends TestCase
         self::assertEquals(600 * 0.9, $totals->getTotal()->asInteger());
         self::assertFalse($totals->isPromotionDiff());
         self::assertFalse($totals->isItemsDiff());
-        self::assertEquals([$promo2],$totals->getNotEligible());
+        self::assertEquals([$promo2], $totals->getNotEligible());
 
     }
 }
