@@ -366,10 +366,13 @@ final class CartTest extends TestCase
         };
         $cart->addPromotion($fixedCartPromo);
         $totals = $cart->performTotals();
-        self::assertGreaterThanOrEqual(0, $totals->getTotal()->asInteger());
-        self::assertGreaterThanOrEqual(0, $totals
+        self::assertEquals(0, $totals->getTotal()->asInteger());
+        self::assertEquals(0, $totals
             ->getItemSubTotals()[0]
             ->subTotalAfterPromo->asInteger());
+        self::assertEquals(-400, $totals
+            ->getPromotionItemsImpact()[0]
+            ->priceImpact->asInteger());
 
     }
 
