@@ -11,6 +11,7 @@ use RevoTale\ShoppingCart\CartItemCounter;
 use RevoTale\ShoppingCart\CartItemInterface;
 use RevoTale\ShoppingCart\CartItemPromoImpact;
 use RevoTale\ShoppingCart\CartItemSubTotal;
+use RevoTale\ShoppingCart\CartItemSubTotalReducer;
 use RevoTale\ShoppingCart\CartPromoImpact;
 use RevoTale\ShoppingCart\PromoCalculationsContext;
 use RevoTale\ShoppingCart\Decimal;
@@ -374,6 +375,57 @@ final class CartTest extends TestCase
             ->getPromotionItemsImpact()[0]
             ->priceImpact->asInteger());
 
+
+        $cart->removePromotion($fixedCartPromo);
+        $cart->addPromotion(new class implements PromotionInterface
+        {
+
+            public function isEligible(CartInterface $cart): bool
+            {
+               return true;
+            }
+
+            public function reduceItemSubtotal(ModifiedCartData $cart, CartItemInterface $item, Decimal $subTotal, PromoCalculationsContext $context): Decimal
+            {
+               return  $subTotal;
+            }
+
+            public function reduceItems(ModifiedCartData $cart, array $itemCounters): array
+            {
+                return $itemCounters;
+            }
+
+            public function reducePromotions(ModifiedCartData $cart, array $promotions): array
+            {
+               return $promotions;
+            }
+
+            public function getCartId(): string
+            {
+               return '1';
+            }
+
+            public function getCartType(): string
+            {
+             return 'ss';
+            }
+
+            /**
+             * @param list<CartItemSubTotalReducer> $items
+             */
+            public function reduceItemsSubTotal(array $items, PromoCalculationsContext $context, ModifiedCartData $data): void
+            {
+             $items[0]->setSubTotal(Decimal::fromInteger(-10000000));
+            }
+        });
+        $totals = $cart->performTotals();
+        self::assertEquals(0, $totals->getTotal()->asInteger());
+        self::assertEquals(0, $totals
+            ->getItemSubTotals()[0]
+            ->subTotalAfterPromo->asInteger());
+        self::assertEquals(-400, $totals
+            ->getPromotionItemsImpact()[0]
+            ->priceImpact->asInteger());
     }
 
     public function testQtyReduce(): void
