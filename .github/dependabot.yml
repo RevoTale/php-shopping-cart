@@ -21,7 +21,7 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "npm"
-    directory: ""/"
+    directory: "/"
     groups:
       all:
         patterns:
