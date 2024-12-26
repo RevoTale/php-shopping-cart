@@ -150,7 +150,7 @@ class Cart implements CartInterface
 
         $diff = $keyedBCount;
         foreach ($keyedACount as $itemId => $count) {
-            if (!isset( $diff[$itemId] ) ) {
+            if (!isset($diff[$itemId])) {
                 $diff[$itemId] = 0;
             }
 
@@ -183,12 +183,6 @@ class Cart implements CartInterface
     }
 
 
-
-
-
-
-
-
     /**
      * @param list<PromotionInterface> $promotions
      * @return list<PromotionInterface>
@@ -212,7 +206,7 @@ class Cart implements CartInterface
      *
      * @return list<PromotionInterface>
      */
-    private function performPromotionReduce(array $promotions, array &$promoImpact,array &$notEligible): array
+    private function performPromotionReduce(array $promotions, array &$promoImpact, array &$notEligible): array
     {
 
         $newPromotions = array_values(array_filter($promotions, fn(PromotionInterface $p): bool => $p->isEligible($this)));
@@ -258,7 +252,6 @@ class Cart implements CartInterface
     }
 
 
-
     public function performTotals(): CartTotals
     {
 
@@ -272,7 +265,7 @@ class Cart implements CartInterface
          */
         $promoImpact = [];
 
-        $promotions =  $this->performPromotionReduce(array_values($this->promotions), $promoImpact,$notEligible);
+        $promotions = $this->performPromotionReduce(array_values($this->promotions), $promoImpact, $notEligible);
 
         /**
          * @var list<CartItemPromoImpact> $promotionItemsImpact
@@ -302,7 +295,7 @@ class Cart implements CartInterface
             promotionItemsImpact: $promotionItemsImpact,
             promotionsImpact: ($promoImpact),
             promotions: $keyedPromo,
-            notEligible:$notEligible
+            notEligible: $notEligible
         );
 
     }
@@ -326,13 +319,16 @@ class Cart implements CartInterface
             $promotion->reduceItemsSubTotal($totalsContainer, $context, new ModifiedCartData(items: $this->convertToModified($items), promotions: $promotions, cart: $this));
             foreach ($totalsContainer as $subTotalCounter) {
                 $itemId = CartHelpers::getItemKey($subTotalCounter->item);
-                $diff = $subTotalCounter->getSubTotal()->sub($itemSubTotals[$itemId]->subTotalAfterPromo,5);
+                $diff = $subTotalCounter->getSubTotal()->sub($itemSubTotals[$itemId]->subTotalAfterPromo, 5);
                 if (!$diff->isZero()) {
                     $promotionItemsImpact[] = new CartItemPromoImpact(
                         item: $subTotalCounter->item,
                         promotion: $promotion,
                         priceImpact: $diff
                     );
+
+                }
+                if ($subTotalCounter->quantity > 0) {
                     $itemSubTotals[$itemId] = new CartItemSubTotal(
                         item: $subTotalCounter->item,
                         quantity: $subTotalCounter->quantity,
@@ -374,11 +370,11 @@ class Cart implements CartInterface
 
             $itemId = CartHelpers::getItemKey($item);
             $quantity = $this->getItemQuantity($item);
-            if ($quantity === null || $quantity<=0) {
+            if ($quantity === null || $quantity <= 0) {
                 continue;
             }
 
-            $before = Decimal::fromFloat($item->getUnitPrice() * $quantity,4);
+            $before = Decimal::fromFloat($item->getUnitPrice() * $quantity, 4);
 
             $subTotal = $before;
             foreach ($promotions as $promotion) {
@@ -395,7 +391,7 @@ class Cart implements CartInterface
                     $subTotal = Decimal::fromInteger(0);
                 }
 
-                $impact = $subTotal->sub($subTotalBeforePromoItem,5);
+                $impact = $subTotal->sub($subTotalBeforePromoItem, 5);
                 if (!$impact->isZero()) {
                     $itemPromoImpacts[] = new CartItemPromoImpact(
                         item: $item,
