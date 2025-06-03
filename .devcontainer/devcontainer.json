@@ -1,8 +1,12 @@
 {
-    "image": "mcr.microsoft.com/devcontainers/php:8.4",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
     "customizations": {
         "vscode": {
-            "extensions": ["GitHub.vscode-pull-request-github"]
+            "extensions": [
+                "GitHub.vscode-pull-request-github"
+            ]
         }
     }
 }
