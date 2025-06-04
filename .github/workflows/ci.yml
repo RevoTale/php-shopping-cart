@@ -42,3 +42,9 @@ jobs:
         prefer-lowest: 0
     - name: Run test suite
       run: composer run-script phpstan
+  TestFinalization:
+    needs: [ PHPUnit, Rector, PHPStan ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Success
+        run: echo "Ready to merge!"
