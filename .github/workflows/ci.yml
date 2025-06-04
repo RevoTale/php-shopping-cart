@@ -14,6 +14,7 @@ jobs:
         prefer-lowest: [0, 1]
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
     - uses: ./reusable.yml
       with:
         php-version: ${{ matrix.php }}
