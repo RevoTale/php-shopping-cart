@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace RevoTale\ShoppingCart;
@@ -51,14 +52,12 @@ class Decimal
      * @param numeric-string $value Internal numeric value
      * @param int $scale Number of digits behind the point
      */
-    private function __construct(protected string $value,private int $scale)
-    {
-    }
+    private function __construct(protected string $value, private int $scale) {}
 
     /**
      * Decimal "constructor".
      */
-    public static function create(int|float|string|self $value, int $scale = null): Decimal
+    public static function create(int|float|string|self $value, ?int $scale = null): Decimal
     {
         if (is_int($value)) {
             return self::fromInteger($value);
@@ -82,10 +81,7 @@ class Decimal
         return new self((string)$intValue, 0);
     }
 
-    /**
-     * @param int|null $scale
-     */
-    public static function fromFloat(float $fltValue, int $scale = null): Decimal
+    public static function fromFloat(float $fltValue, ?int $scale = null): Decimal
     {
         self::paramsValidation($fltValue, $scale);
 
@@ -97,13 +93,10 @@ class Decimal
             throw new UnexpectedValueException("fltValue can't be NaN");
         }
 
-        /**
-         * @var numeric-string $strValue
-         */
         $strValue = (string)$fltValue;
         $hasPoint = (str_contains($strValue, '.'));
-$result = preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture);
-        if ($result !== false && $result !== 0 ) {
+        $result = preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture);
+        if ($result !== false && $result !== 0) {
             if (null === $scale) {
                 $sign = $capture['sign'];
                 $scale = ('-' === ($sign))
@@ -129,10 +122,7 @@ $result = preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture);
         return new self($strValue, $scale);
     }
 
-    /**
-     * @param int|null $scale
-     */
-    public static function fromString(string $strValue, int $scale = null): Decimal
+    public static function fromString(string $strValue, ?int $scale = null): Decimal
     {
         self::paramsValidation($strValue, $scale);
 
@@ -141,7 +131,6 @@ $result = preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture);
             // Now it's time to strip leading zeros in order to normalize inner values
             $value = self::normalizeSign($captures[1]) . $captures[2];
             $min_scale = isset($captures[4]) ? max(0, strlen($captures[4]) - 1) : 0;
-
         } elseif (preg_match(self::EXP_NOTATION_NUMBER_REGEXP, $strValue, $captures) === 1) {
             $mantisa = $captures['mantissa'];
             assert(is_numeric($mantisa));
@@ -167,17 +156,15 @@ $result = preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture);
             $value .= ($hasPoint ? '' : '.') . str_pad('', $scale - $min_scale, '0');
         }
 
-        assert(is_numeric($value) );
+        assert(is_numeric($value));
         return new self($value, $scale);
     }
 
     /**
      * Constructs a new Decimal object based on a previous one,
      * but changing it's $scale property.
-     *
-     * @param null|int $scale
      */
-    public static function fromDecimal(Decimal $decValue, int $scale = null): Decimal
+    public static function fromDecimal(Decimal $decValue, ?int $scale = null): Decimal
     {
         self::paramsValidation($decValue, $scale);
 
@@ -194,9 +181,8 @@ $result = preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture);
 
     /**
      * Adds two Decimal objects
-     * @param null|int $scale
      */
-    public function add(Decimal $b, int $scale = null): Decimal
+    public function add(Decimal $b, ?int $scale = null): Decimal
     {
         self::paramsValidation($b, $scale);
 
@@ -208,9 +194,8 @@ $result = preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture);
 
     /**
      * Subtracts two BigNumber objects
-     * @param int|null $scale
      */
-    public function sub(Decimal $b, int $scale = null): self
+    public function sub(Decimal $b, ?int $scale = null): self
     {
         self::paramsValidation($b, $scale);
 
@@ -222,9 +207,8 @@ $result = preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture);
 
     /**
      * Multiplies two BigNumber objects
-     * @param int|null $scale
      */
-    public function mul(Decimal $b, int $scale = null): Decimal
+    public function mul(Decimal $b, ?int $scale = null): Decimal
     {
         self::paramsValidation($b, $scale);
 
@@ -243,10 +227,8 @@ $result = preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture);
      * Warning: div with $scale == 0 is not the same as
      *          integer division because it rounds the
      *          last digit in order to minimize the error.
-     *
-     * @param int|null $scale
      */
-    public function div(Decimal $b, int $scale = null): Decimal
+    public function div(Decimal $b, ?int $scale = null): Decimal
     {
         self::paramsValidation($b, $scale);
 
@@ -280,15 +262,15 @@ $result = preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture);
         }
 
         return self::fromString(
-            bcdiv($this->value, $b->value, $divscale + 1), $divscale
+            bcdiv($this->value, $b->value, $divscale + 1),
+            $divscale
         );
     }
 
     /**
      * Returns the square root of this object
-     * @param int|null $scale
      */
-    public function sqrt(int $scale = null): Decimal
+    public function sqrt(?int $scale = null): Decimal
     {
         if ($this->isNegative()) {
             throw new DomainException(
@@ -312,9 +294,8 @@ $result = preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture);
      * Powers this value to $b
      *
      * @param Decimal $b exponent
-     * @param int|null $scale
      */
-    public function pow(Decimal $b, int $scale = null): Decimal
+    public function pow(Decimal $b, ?int $scale = null): Decimal
     {
         if ($this->isZero()) {
             if ($b->isPositive()) {
@@ -353,18 +334,18 @@ $result = preg_match(self::EXP_NUM_GROUPS_NUMBER_REGEXP, $strValue, $capture);
             $first_pow_approx = bcpow($this->value, $truncated_b, $pow_scale + 1);
             $intermediate_root = $this->innerPowWithLittleExponent($this->value, $remaining_b, $b->scale, $pow_scale + 1);
 
-$result = bcmul($first_pow_approx, $intermediate_root, $pow_scale + 1);
+            $result = bcmul($first_pow_approx, $intermediate_root, $pow_scale + 1);
             return self::fromString(
                 $result,
                 $pow_scale
             );
         }
 
-// elseif ($this->isNegative())
+        // elseif ($this->isNegative())
         if (!$b->isInteger()) {
             throw new UnexpectedValueException(
                 "Usually negative numbers can't be powered to non integer numbers. " .
-                "The cases where is possible are not implemented."
+                    "The cases where is possible are not implemented."
             );
         }
 
@@ -375,9 +356,8 @@ $result = bcmul($first_pow_approx, $intermediate_root, $pow_scale + 1);
 
     /**
      * Returns the object's logarithm in base 10
-     * @param int|null $scale
      */
-    public function log10(int $scale = null): Decimal
+    public function log10(?int $scale = null): Decimal
     {
         if ($this->isNegative()) {
             throw new DomainException(
@@ -397,7 +377,7 @@ $result = bcmul($first_pow_approx, $intermediate_root, $pow_scale + 1);
         );
     }
 
-    public function isZero(int $scale = null): bool
+    public function isZero(?int $scale = null): bool
     {
         $cmp_scale = $scale ?? $this->scale;
 
@@ -421,9 +401,8 @@ $result = bcmul($first_pow_approx, $intermediate_root, $pow_scale + 1);
 
     /**
      * Equality comparison between this object and $b
-     * @param int|null $scale
      */
-    public function equals(Decimal $b, int $scale = null): bool
+    public function equals(Decimal $b, ?int $scale = null): bool
     {
         self::paramsValidation($b, $scale);
 
@@ -444,10 +423,8 @@ $result = bcmul($first_pow_approx, $intermediate_root, $pow_scale + 1);
 
     /**
      * $this > $b : returns 1 , $this < $b : returns -1 , $this == $b : returns 0
-     *
-     * @param int|null $scale
      */
-    public function comp(Decimal $b, int $scale = null): int
+    public function comp(Decimal $b, ?int $scale = null): int
     {
         self::paramsValidation($b, $scale);
 
@@ -467,20 +444,16 @@ $result = bcmul($first_pow_approx, $intermediate_root, $pow_scale + 1);
 
     /**
      * Returns true if $this > $b, otherwise false
-     *
-     * @param int|null $scale
      */
-    public function isGreaterThan(Decimal $b, int $scale = null): bool
+    public function isGreaterThan(Decimal $b, ?int $scale = null): bool
     {
         return $this->comp($b, $scale) === 1;
     }
 
     /**
      * Returns true if $this >= $b
-     *
-     * @param int|null $scale
      */
-    public function isGreaterOrEqualTo(Decimal $b, int $scale = null): bool
+    public function isGreaterOrEqualTo(Decimal $b, ?int $scale = null): bool
     {
         $comparisonResult = $this->comp($b, $scale);
 
@@ -489,20 +462,16 @@ $result = bcmul($first_pow_approx, $intermediate_root, $pow_scale + 1);
 
     /**
      * Returns true if $this < $b, otherwise false
-     *
-     * @param int|null $scale
      */
-    public function isLessThan(Decimal $b, int $scale = null): bool
+    public function isLessThan(Decimal $b, ?int $scale = null): bool
     {
         return $this->comp($b, $scale) === -1;
     }
 
     /**
      * Returns true if $this <= $b, otherwise false
-     *
-     * @param int|null $scale
      */
-    public function isLessOrEqualTo(Decimal $b, int $scale = null): bool
+    public function isLessOrEqualTo(Decimal $b, ?int $scale = null): bool
     {
         $comparisonResult = $this->comp($b, $scale);
 
@@ -520,7 +489,7 @@ $result = bcmul($first_pow_approx, $intermediate_root, $pow_scale + 1);
 
         $value = $this->isNegative() ? substr($this->value, 1) : '-' . $this->value;
 
-assert(is_numeric($value));
+        assert(is_numeric($value));
         return new self($value, $this->scale);
     }
 
@@ -606,10 +575,9 @@ assert(is_numeric($value));
 
     /**
      * Calculate modulo with a decimal
-     * @param int|null $scale
      * @return Decimal % $d
      */
-    public function mod(Decimal $d, int $scale = null): self
+    public function mod(Decimal $d, ?int $scale = null): self
     {
         $div = $this->div($d, 1)->floor();
         return $this->sub($div->mul($d), $scale);
@@ -619,10 +587,9 @@ assert(is_numeric($value));
      * Calculates the sine of this method with the highest possible accuracy
      * Note that accuracy is limited by the accuracy of predefined PI;
      *
-     * @param int|null $scale
      * @return Decimal sin($this)
      */
-    public function sin(int $scale = null): Decimal
+    public function sin(?int $scale = null): Decimal
     {
         // First normalise the number in the [0, 2PI] domain
         $x = $this->mod(DecimalConstants::pi()->mul(self::fromString("2")));
@@ -632,7 +599,7 @@ assert(is_numeric($value));
 
         return $this->factorialSerie($x, DecimalConstants::zero(), static function ($i): \RevoTale\ShoppingCart\Decimal {
             return ($i % 2 === 1) ? (
-            ($i % 4 === 1) ? DecimalConstants::one() : DecimalConstants::negativeOne()
+                ($i % 4 === 1) ? DecimalConstants::one() : DecimalConstants::negativeOne()
             ) : DecimalConstants::zero();
         }, $scale);
     }
@@ -657,10 +624,9 @@ assert(is_numeric($value));
      * Calculates the cosine of this method with the highest possible accuracy
      * Note that accuracy is limited by the accuracy of predefined PI;
      *
-     * @param int|null $scale
      * @return Decimal cos($this)
      */
-    public function cos(int $scale = null): Decimal
+    public function cos(?int $scale = null): Decimal
     {
         // First normalise the number in the [0, 2PI] domain
         $x = $this->mod(DecimalConstants::pi()->mul(self::fromString("2")));
@@ -670,7 +636,7 @@ assert(is_numeric($value));
 
         return $this->factorialSerie($x, DecimalConstants::one(), function ($i): \RevoTale\ShoppingCart\Decimal {
             return ($i % 2 === 0) ? (
-            ($i % 4 === 0) ? DecimalConstants::one() : DecimalConstants::negativeOne()
+                ($i % 4 === 0) ? DecimalConstants::one() : DecimalConstants::negativeOne()
             ) : DecimalConstants::zero();
         }, $scale);
     }
@@ -775,7 +741,7 @@ assert(is_numeric($value));
     /**
      * Calculates the arccotangente of this with the highest possible accuracy
      */
-    public function arccot(int $scale = null): Decimal
+    public function arccot(?int $scale = null): Decimal
     {
         $scale = $scale ?? 32;
 
@@ -827,9 +793,9 @@ assert(is_numeric($value));
     /**
      * Calculates the arccosecant of this with the highest possible accuracy
      */
-    public function arccsc(int $scale = null): Decimal
+    public function arccsc(?int $scale = null): Decimal
     {
-        if ($this->comp(DecimalConstants::one(), ($scale??0) + 2) === -1 && $this->comp(DecimalConstants::negativeOne(), ($scale??0) + 2) === 1) {
+        if ($this->comp(DecimalConstants::one(), ($scale ?? 0) + 2) === -1 && $this->comp(DecimalConstants::negativeOne(), ($scale ?? 0) + 2) === 1) {
             throw new DomainException(
                 "The arccosecant of this number is undefined."
             );
@@ -851,7 +817,7 @@ assert(is_numeric($value));
     /**
      * Returns exp($this), said in other words: e^$this .
      */
-    public function exp(int $scale = null): Decimal
+    public function exp(?int $scale = null): Decimal
     {
         if ($this->isZero()) {
             return DecimalConstants::one();
@@ -863,8 +829,8 @@ assert(is_numeric($value));
         );
 
         return $this->factorialSerie($this, DecimalConstants::one(), function ($i): \RevoTale\ShoppingCart\Decimal {
-        return DecimalConstants::one();
-    }, $scale);
+            return DecimalConstants::one();
+        }, $scale);
     }
 
     /**
@@ -1048,8 +1014,7 @@ assert(is_numeric($value));
         int    $nDecimals,
         string $expSign,
         int    $expVal
-    ): array
-    {
+    ): array {
         $mantissaScale = max($nDecimals, 0);
 
         if (self::normalizeSign($expSign) === '') {
@@ -1125,7 +1090,7 @@ assert(is_numeric($value));
                 );
             case -1:
                 preg_match('/^0*\.(0*)[1-9]\d*$/', $value, $captures);
-                $value_log10_approx = -strlen($captures[1]??'') - 1;
+                $value_log10_approx = -strlen($captures[1] ?? '') - 1;
 
                 return bcadd(
                     (string)$value_log10_approx,
@@ -1152,8 +1117,7 @@ assert(is_numeric($value));
         string $exponent,
         int    $exp_scale,
         int    $out_scale
-    ): string
-    {
+    ): string {
         $inner_scale = (int)ceil($exp_scale * log(10) / log(2)) + 1;
         /**
          * @var numeric-string $result_a
@@ -1206,8 +1170,7 @@ assert(is_numeric($value));
         int    $actual_index,
         int    $exp_scale,
         int    $inner_scale
-    ): array
-    {
+    ): array {
         $actual_rt = bcpow('0.5', (string)$actual_index, $exp_scale);
         $r = bcsub($exponent_remaining, $actual_rt, $inner_scale);
 
@@ -1238,9 +1201,8 @@ assert(is_numeric($value));
 
     /**
      * Validates basic constructor's arguments
-     * @param null|int $scale
      */
-    protected static function paramsValidation(mixed $value, int $scale = null): void
+    protected static function paramsValidation(mixed $value, ?int $scale = null): void
     {
         if (null === $value) {
             throw new InvalidArgumentException('$value must be a non null number');
@@ -1269,6 +1231,6 @@ assert(is_numeric($value));
     {
         return strlen($val->value) - (
             ($abs->comp(DecimalConstants::one()) === -1) ? 2 : max($val->scale, 1)
-            ) - ($val->isNegative() ? 1 : 0);
+        ) - ($val->isNegative() ? 1 : 0);
     }
 }

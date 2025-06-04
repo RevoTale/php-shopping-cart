@@ -1,0 +1,50 @@
+name: PHP Composer
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+permissions:
+  contents: read
+jobs:
+  PHPUnit:
+    strategy:
+      matrix:
+        php: [ 8.3, 8.4]
+        prefer-lowest: [0, 1]
+    runs-on: ubuntu-latest
+    name: PHP ${{ matrix.php }} - ${{ matrix.prefer-lowest == 1 && 'Lowest' || 'Latest' }} Dependencies
+    steps:
+    - uses: actions/checkout@v4
+    - uses: RevoTale/php-composer-testing-action@v1.0.0
+      with:
+        php-version: ${{ matrix.php }}
+        prefer-lowest: ${{ matrix.prefer-lowest }}
+    - name: Run test suite
+      run: composer run-script phpunit
+  Rector:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: RevoTale/php-composer-testing-action@v1.0.0
+      with:
+        php-version: 8.4
+        prefer-lowest: 0
+    - name: Run test suite
+      run: composer run-script rector:test
+  PHPStan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: RevoTale/php-composer-testing-action@v1.0.0
+      with:
+        php-version: 8.4
+        prefer-lowest: 0
+    - name: Run test suite
+      run: composer run-script phpstan
+  TestFinalization:
+    needs: [ PHPUnit, Rector, PHPStan ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Success
+        run: echo "Ready to merge!"

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace RevoTale\ShoppingCart;
@@ -40,7 +41,6 @@ class Cart implements CartInterface
         $result = $this->findItem($item);
         if (null === $result) {
             return null;
-
         }
 
         return $result->quantity;
@@ -52,7 +52,7 @@ class Cart implements CartInterface
         return $this->findItem($item) !== null;
     }
 
-    public function removeItem(CartItemInterface $item, int $qty = null): void
+    public function removeItem(CartItemInterface $item, ?int $qty = null): void
     {
         $id = CartHelpers::getItemKey($item);
         if (!isset($this->items[$id])) {
@@ -155,7 +155,6 @@ class Cart implements CartInterface
             }
 
             $diff[$itemId] -= $count;
-
         }
 
         $objDiff = [];
@@ -165,7 +164,6 @@ class Cart implements CartInterface
                 if (CartHelpers::getItemKey($item->getItem()) === $itemId) {
                     $foundItem = $item;
                 }
-
             }
 
             if ($foundItem === null) {
@@ -242,7 +240,9 @@ class Cart implements CartInterface
             }
 
             $promoImpact[CartHelpers::getItemKey($promotion)] = new CartPromoImpact(
-                promotion: $promotion, cartItemsDiff: [], promotionsDiff: $diff
+                promotion: $promotion,
+                cartItemsDiff: [],
+                promotionsDiff: $diff
             );
             $i = 0;
             $promotions = $newPromotions;
@@ -282,7 +282,11 @@ class Cart implements CartInterface
 
         $this->performItemPriceReduce(promotions: $promotions, items: $items, itemPromoImpacts: $promotionItemsImpact, itemSubTotals: $itemSubTotals, context: $context);
         $this->performAfterPriceReduce(
-            itemSubTotals: $itemSubTotals, promotions: $promotions, promotionItemsImpact: $promotionItemsImpact, items: $items, context: $context
+            itemSubTotals: $itemSubTotals,
+            promotions: $promotions,
+            promotionItemsImpact: $promotionItemsImpact,
+            items: $items,
+            context: $context
         );
 
         $keyed = CartHelpers::makeKeyedItems($items);
@@ -297,7 +301,6 @@ class Cart implements CartInterface
             promotions: $keyedPromo,
             notEligible: $notEligible
         );
-
     }
 
     /**
@@ -312,7 +315,9 @@ class Cart implements CartInterface
             $totalsContainer = [];
             foreach ($itemSubTotals as $subTotalItem) {
                 $totalsContainer[] = new CartItemSubTotalReducer(
-                    item: $subTotalItem->item, quantity: $subTotalItem->quantity, subTotal: $subTotalItem->subTotalAfterPromo,
+                    item: $subTotalItem->item,
+                    quantity: $subTotalItem->quantity,
+                    subTotal: $subTotalItem->subTotalAfterPromo,
                 );
             }
 
@@ -326,8 +331,8 @@ class Cart implements CartInterface
                         promotion: $promotion,
                         priceImpact: $diff
                     );
-
                 }
+
                 if ($subTotalCounter->quantity > 0) {
                     $itemSubTotals[$itemId] = new CartItemSubTotal(
                         item: $subTotalCounter->item,
@@ -336,7 +341,6 @@ class Cart implements CartInterface
                         subTotalAfterPromo: $subTotalCounter->getSubTotal()
                     );
                 }
-
             }
         }
     }
@@ -352,7 +356,8 @@ class Cart implements CartInterface
             static fn(CartItemCounter $item): \RevoTale\ShoppingCart\ModifiedCartItemData => new ModifiedCartItemData(
                 item: $item->item,
                 quantity: $item->quantity
-            ), $items
+            ),
+            $items
         );
     }
 
@@ -408,8 +413,6 @@ class Cart implements CartInterface
                 subTotalAfterPromo: $subTotal
             );
         }
-
-
     }
 
 
@@ -442,5 +445,4 @@ class Cart implements CartInterface
 
         return $items;
     }
-
 }
