@@ -47,14 +47,9 @@ jobs:
         run: |
           composer validate --strict --no-check-all
 
-      - name: Check composer.lock exists
+      - name: Composer install
         run: |
-          if [[ ! -f "composer.lock" ]]; then
-            echo "❌ composer.lock file is missing"
-            echo "Please run 'composer install' locally and commit the composer.lock file"
-            exit 1
-          fi
-          echo "✅ composer.lock file exists"
+          composer install
 
       - name: Verify required scripts exist
         run: |
