@@ -16,7 +16,7 @@ jobs:
     name: PHP ${{ matrix.php }} - ${{ matrix.prefer-lowest == 1 && 'Lowest' || 'Latest' }} Dependencies
     steps:
     - uses: actions/checkout@v4
-    - uses: RevoTale/php-composer-testing-action@25bfd59
+    - uses: RevoTale/php-composer-testing-action@v1.0.0
       with:
         php-version: ${{ matrix.php }}
         prefer-lowest: ${{ matrix.prefer-lowest }}
