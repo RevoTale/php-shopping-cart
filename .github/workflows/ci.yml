@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/workflows/reusable
+    - uses: RevoTale/php-composer-testing-action@1
       with:
         php-version: ${{ matrix.php }}
         prefer-lowest: ${{ matrix.prefer-lowest }}
