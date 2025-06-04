@@ -10,7 +10,7 @@ jobs:
   PHPUnit:
     strategy:
       matrix:
-        php: [ 8.2, 8.3, 8.4]
+        php: [ 8.3, 8.4]
         prefer-lowest: [0, 1]
     runs-on: ubuntu-latest
     name: PHP ${{ matrix.php }} - ${{ matrix.prefer-lowest == 1 && 'Lowest' || 'Latest' }} Dependencies
