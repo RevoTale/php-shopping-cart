@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: ./reusable
+    - uses: /.github/workflows/reusable
       with:
         php-version: ${{ matrix.php }}
         prefer-lowest: ${{ matrix.prefer-lowest }}
