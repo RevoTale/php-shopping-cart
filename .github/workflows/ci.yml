@@ -14,23 +14,9 @@ jobs:
         prefer-lowest: [0, 1]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
+    - uses: ./reusable.yml
       with:
         php-version: ${{ matrix.php }}
-    - name: Validate composer.json and composer.lock
-      run: composer validate --strict
-    - name: Cache Composer packages
-      id: composer-cache
-      uses: actions/cache@v4
-      with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-${{ matrix.php }}
-    - name: Install dependencies
-      run: |
-        COMPOSER_PREFER_LOWEST=${{ matrix.prefer-lowest }} composer install --prefer-dist --no-progress
+        prefer-lowest: ${{ matrix.prefer-lowest }}
     - name: Run test suite
       run: composer run-script phpunit

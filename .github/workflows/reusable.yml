@@ -1,0 +1,34 @@
+# .github/workflows/reusable.yml
+name: Reusable CI
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        required: true
+        type: string
+      prefer-lowest:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ inputs.php-version }}
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v4
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ php-version.php }}
+    - name: Install dependencies
+      run: |
+        COMPOSER_PREFER_LOWEST=${{ php-version.prefer-lowest }} composer install --prefer-dist --no-progress
