@@ -15,9 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: /.github/workflows/reusable
+    - uses: ./.github/workflows/reusable
       with:
         php-version: ${{ matrix.php }}
         prefer-lowest: ${{ matrix.prefer-lowest }}
     - name: Run test suite
       run: composer run-script phpunit
+      shell: bash

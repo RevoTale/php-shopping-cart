@@ -12,7 +12,6 @@ on:
 
 runs:
   using: "composite"
-  runs-on: ubuntu-latest
   steps:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
@@ -20,6 +19,7 @@ runs:
         php-version: ${{ inputs.php-version }}
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
+      shell: bash
     - name: Cache Composer packages
       id: composer-cache
       uses: actions/cache@v4
@@ -27,7 +27,12 @@ runs:
         path: vendor
         key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
-          ${{ runner.os }}-php-${{ php-version.php }}
+          ${{ runner.os }}-php-${{ inputs.php-version }}
     - name: Install dependencies
       run: |
-        COMPOSER_PREFER_LOWEST=${{ php-version.prefer-lowest }} composer install --prefer-dist --no-progress
+        if [ "${{ inputs.prefer-lowest }}" = "1" ]; then
+          composer update --prefer-lowest --prefer-dist --no-progress
+        else
+          composer install --prefer-dist --no-progress
+        fi
+      shell: bash
