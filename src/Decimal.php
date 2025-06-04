@@ -81,9 +81,6 @@ class Decimal
         return new self((string)$intValue, 0);
     }
 
-    /**
-     * @param int|null $scale
-     */
     public static function fromFloat(float $fltValue, ?int $scale = null): Decimal
     {
         self::paramsValidation($fltValue, $scale);
@@ -125,9 +122,6 @@ class Decimal
         return new self($strValue, $scale);
     }
 
-    /**
-     * @param int|null $scale
-     */
     public static function fromString(string $strValue, ?int $scale = null): Decimal
     {
         self::paramsValidation($strValue, $scale);
@@ -169,8 +163,6 @@ class Decimal
     /**
      * Constructs a new Decimal object based on a previous one,
      * but changing it's $scale property.
-     *
-     * @param null|int $scale
      */
     public static function fromDecimal(Decimal $decValue, ?int $scale = null): Decimal
     {
@@ -189,7 +181,6 @@ class Decimal
 
     /**
      * Adds two Decimal objects
-     * @param null|int $scale
      */
     public function add(Decimal $b, ?int $scale = null): Decimal
     {
@@ -203,7 +194,6 @@ class Decimal
 
     /**
      * Subtracts two BigNumber objects
-     * @param int|null $scale
      */
     public function sub(Decimal $b, ?int $scale = null): self
     {
@@ -217,7 +207,6 @@ class Decimal
 
     /**
      * Multiplies two BigNumber objects
-     * @param int|null $scale
      */
     public function mul(Decimal $b, ?int $scale = null): Decimal
     {
@@ -238,8 +227,6 @@ class Decimal
      * Warning: div with $scale == 0 is not the same as
      *          integer division because it rounds the
      *          last digit in order to minimize the error.
-     *
-     * @param int|null $scale
      */
     public function div(Decimal $b, ?int $scale = null): Decimal
     {
@@ -282,7 +269,6 @@ class Decimal
 
     /**
      * Returns the square root of this object
-     * @param int|null $scale
      */
     public function sqrt(?int $scale = null): Decimal
     {
@@ -308,7 +294,6 @@ class Decimal
      * Powers this value to $b
      *
      * @param Decimal $b exponent
-     * @param int|null $scale
      */
     public function pow(Decimal $b, ?int $scale = null): Decimal
     {
@@ -371,7 +356,6 @@ class Decimal
 
     /**
      * Returns the object's logarithm in base 10
-     * @param int|null $scale
      */
     public function log10(?int $scale = null): Decimal
     {
@@ -417,7 +401,6 @@ class Decimal
 
     /**
      * Equality comparison between this object and $b
-     * @param int|null $scale
      */
     public function equals(Decimal $b, ?int $scale = null): bool
     {
@@ -440,8 +423,6 @@ class Decimal
 
     /**
      * $this > $b : returns 1 , $this < $b : returns -1 , $this == $b : returns 0
-     *
-     * @param int|null $scale
      */
     public function comp(Decimal $b, ?int $scale = null): int
     {
@@ -463,8 +444,6 @@ class Decimal
 
     /**
      * Returns true if $this > $b, otherwise false
-     *
-     * @param int|null $scale
      */
     public function isGreaterThan(Decimal $b, ?int $scale = null): bool
     {
@@ -473,8 +452,6 @@ class Decimal
 
     /**
      * Returns true if $this >= $b
-     *
-     * @param int|null $scale
      */
     public function isGreaterOrEqualTo(Decimal $b, ?int $scale = null): bool
     {
@@ -485,8 +462,6 @@ class Decimal
 
     /**
      * Returns true if $this < $b, otherwise false
-     *
-     * @param int|null $scale
      */
     public function isLessThan(Decimal $b, ?int $scale = null): bool
     {
@@ -495,8 +470,6 @@ class Decimal
 
     /**
      * Returns true if $this <= $b, otherwise false
-     *
-     * @param int|null $scale
      */
     public function isLessOrEqualTo(Decimal $b, ?int $scale = null): bool
     {
@@ -602,7 +575,6 @@ class Decimal
 
     /**
      * Calculate modulo with a decimal
-     * @param int|null $scale
      * @return Decimal % $d
      */
     public function mod(Decimal $d, ?int $scale = null): self
@@ -615,7 +587,6 @@ class Decimal
      * Calculates the sine of this method with the highest possible accuracy
      * Note that accuracy is limited by the accuracy of predefined PI;
      *
-     * @param int|null $scale
      * @return Decimal sin($this)
      */
     public function sin(?int $scale = null): Decimal
@@ -653,7 +624,6 @@ class Decimal
      * Calculates the cosine of this method with the highest possible accuracy
      * Note that accuracy is limited by the accuracy of predefined PI;
      *
-     * @param int|null $scale
      * @return Decimal cos($this)
      */
     public function cos(?int $scale = null): Decimal
@@ -1231,7 +1201,6 @@ class Decimal
 
     /**
      * Validates basic constructor's arguments
-     * @param null|int $scale
      */
     protected static function paramsValidation(mixed $value, ?int $scale = null): void
     {

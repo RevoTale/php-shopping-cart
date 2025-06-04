@@ -13,10 +13,12 @@ final class CartItemSubTotalReducer
     )
     {
     }
+
     public function setSubTotal(Decimal $subTotal): void
     {
         $this->subTotal = $subTotal->isNegative()?Decimal::fromInteger(0):$subTotal;
     }
+
     public function getSubTotal(): Decimal
     {
         return $this->subTotal;

@@ -332,6 +332,7 @@ class Cart implements CartInterface
                         priceImpact: $diff
                     );
                 }
+
                 if ($subTotalCounter->quantity > 0) {
                     $itemSubTotals[$itemId] = new CartItemSubTotal(
                         item: $subTotalCounter->item,
