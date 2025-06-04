@@ -31,7 +31,7 @@ jobs:
         php-version: 8.4
         prefer-lowest: 0
     - name: Run test suite
-      run: composer run-script rector
+      run: composer run-script rector:test
   PHPStan:
     runs-on: ubuntu-latest
     steps:
