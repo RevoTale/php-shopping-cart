@@ -20,16 +20,6 @@ updates:
       prefix: "github-actions"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/"
-    groups:
-      all:
-        patterns:
-          - "*"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "npm"
   - package-ecosystem: "docker"
     groups:
       all:
