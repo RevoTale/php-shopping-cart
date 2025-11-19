@@ -76,7 +76,7 @@ class Decimal
 
     public static function fromInteger(int $intValue): Decimal
     {
-        self::paramsValidation($intValue, null);
+        self::paramsValidation($intValue);
 
         return new self((string)$intValue, 0);
     }
