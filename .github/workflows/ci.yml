@@ -15,8 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     name: PHP ${{ matrix.php }} - ${{ matrix.prefer-lowest == 1 && 'Lowest' || 'Latest' }} Dependencies
     steps:
-    - uses: actions/checkout@v7
-    - uses: RevoTale/php-composer-testing-action@v1.0.2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+    - uses: RevoTale/php-composer-testing-action@18844dc5764835248fd1bc2c9f0fb7733cf884ec # v1.0.2
       with:
         php-version: ${{ matrix.php }}
         prefer-lowest: ${{ matrix.prefer-lowest }}
@@ -25,8 +25,8 @@ jobs:
   Rector:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
-    - uses: RevoTale/php-composer-testing-action@v1.0.2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+    - uses: RevoTale/php-composer-testing-action@18844dc5764835248fd1bc2c9f0fb7733cf884ec # v1.0.2
       with:
         php-version: 8.4
         prefer-lowest: 0
@@ -35,8 +35,8 @@ jobs:
   PHPStan:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
-    - uses: RevoTale/php-composer-testing-action@v1.0.2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+    - uses: RevoTale/php-composer-testing-action@18844dc5764835248fd1bc2c9f0fb7733cf884ec # v1.0.2
       with:
         php-version: 8.4
         prefer-lowest: 0
