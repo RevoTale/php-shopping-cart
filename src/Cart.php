@@ -6,6 +6,9 @@ namespace RevoTale\ShoppingCart;
 
 use UnexpectedValueException;
 
+/**
+ * @see \RevoTale\ShoppingCart\Tests\CartTest
+ */
 class Cart implements CartInterface
 {
 
