@@ -17,6 +17,7 @@ steps:
   - name: phpunit
     image: ${PHP_IMAGE}
     commands:
+      - docker-php-ext-install -j"$$(nproc)" bcmath
       - composer validate --strict
       - |
         if [ "${PREFER_LOWEST}" = '1' ]; then

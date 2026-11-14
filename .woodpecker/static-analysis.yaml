@@ -6,6 +6,7 @@ steps:
   - name: install
     image: mcr.microsoft.com/devcontainers/php:8.4@sha256:a5661904b8611ebfa831a73c7d629e3a756a0db20fe77f67d3fc665b0caa6e09
     commands:
+      - docker-php-ext-install -j"$$(nproc)" bcmath
       - composer validate --strict
       - composer install --prefer-dist --no-progress
 
@@ -13,10 +14,12 @@ steps:
     image: mcr.microsoft.com/devcontainers/php:8.4@sha256:a5661904b8611ebfa831a73c7d629e3a756a0db20fe77f67d3fc665b0caa6e09
     depends_on: [install]
     commands:
+      - docker-php-ext-install -j"$$(nproc)" bcmath
       - composer run-script rector:test
 
   - name: phpstan
     image: mcr.microsoft.com/devcontainers/php:8.4@sha256:a5661904b8611ebfa831a73c7d629e3a756a0db20fe77f67d3fc665b0caa6e09
     depends_on: [install]
     commands:
+      - docker-php-ext-install -j"$$(nproc)" bcmath
       - composer run-script phpstan
